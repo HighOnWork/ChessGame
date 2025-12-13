@@ -13,7 +13,7 @@ class chess_board:
 
     def create_board(self):
         self.window_maker.minsize(600, 600)
-        self.canvas.config(bg="#582917")
+        self.canvas.config(bg="#004481")
      
     def lining(self):
         for i in range(8): 
