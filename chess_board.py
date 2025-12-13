@@ -1,9 +1,9 @@
 import tkinter as tk
 
 class chess_board:
-    def __init__(self):
-        self.window_maker = tk.Tk()
-        self.canvas = tk.Canvas(height=1000, width=1000)
+    def __init__(self, windowMaker, canvas):
+        self.window_maker = windowMaker
+        self.canvas = canvas
         self.SPACING = 125
         self.BOTTOM_Y_COORDINATE = 1000
         self.TOP_Y_COORDINATE = 0
@@ -25,9 +25,9 @@ class chess_board:
 
     def numbers_and_alphabets(self):
         self.window_maker.title("Chess Engine")
-        Y_COORDINATE_FOR_BOTTOM_ALPHABETS = self.BOTTOM_Y_COORDINATE - 10
+        Y_COORDINATE_FOR_BOTTOM_ALPHABETS = self.BOTTOM_Y_COORDINATE - 15
         Y_COORDINATE_FOR_TOP_ALPHABETS = self.TOP_Y_COORDINATE + 15
-        X_COORDINATE_FOR_LEFT_NUMBERS = self.LEFT_MOST_X_COORDINATE + 10
+        X_COORDINATE_FOR_LEFT_NUMBERS = self.LEFT_MOST_X_COORDINATE + 15
         X_COORDINATE_FOR_RIGHT_NUMBERS = self.RIGHT_MOST_X_COORDINATE - 15
         alph_spacing = self.SPACING // 2
         num_spacing = self.SPACING // 2
