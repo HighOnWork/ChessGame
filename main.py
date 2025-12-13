@@ -13,5 +13,7 @@ new_chess_board.lining()
 new_chess_board.numbers_and_alphabets()
 chess_pieces.black_pawn()
 chess_pieces.white_pawn()
+chess_pieces.black_rook()
+chess_pieces.white_rook()
 
 new_chess_board.config()
