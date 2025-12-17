@@ -1,12 +1,16 @@
 import tkinter as tk
 from chess_board import chess_board
 from chess_pieces import ChessPieces
+from movement_of_pieces import movement_of_indivisual_pieces
+
+
 
 windowMaker = tk.Tk()
 canvas = tk.Canvas(height=1000, width=1000)
 
 new_chess_board = chess_board(windowMaker=windowMaker, canvas=canvas)
 chess_pieces = ChessPieces(windowMaker=windowMaker, canvas=canvas)
+# movement_of_indi = movement_of_indivisual_pieces(canvas=canvas)
 
 new_chess_board.create_board()
 new_chess_board.lining()

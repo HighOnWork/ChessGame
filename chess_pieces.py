@@ -1,5 +1,7 @@
 import tkinter as tk
 from PIL import Image, ImageTk
+from movement_of_pieces import movement_of_indivisual_pieces
+
 
 global img_ref_black_pawn 
 global img_ref_white_pawn
@@ -12,6 +14,7 @@ global img_ref_black_bishop
 
 class ChessPieces:
     def __init__(self, windowMaker, canvas):
+        self.movement_of_indiv = movement_of_indivisual_pieces(canvas=canvas)
         self.window_maker = windowMaker
         self.canvas = canvas
         self.NEW_WIDTH = 75
@@ -32,9 +35,44 @@ class ChessPieces:
         global img_ref_black_pawn
         img_ref_black_pawn = self.image_taketh_and_changeth(".\\BlackPawn.png")
         new_x_for_each_pawn = self.CENTER_X
-        for _ in range(8):
-            self.canvas.create_image(new_x_for_each_pawn, self.CENTER_Y, image=img_ref_black_pawn)
-            new_x_for_each_pawn += 125
+    
+        black_pawn1 = self.canvas.create_image(new_x_for_each_pawn, self.CENTER_Y, image=img_ref_black_pawn)
+        self.canvas.tag_bind(black_pawn1, "<Button-1>", self.movement_of_indiv.pawn_moment)
+
+        new_x_for_each_pawn += 125
+
+        black_pawn2 = self.canvas.create_image(new_x_for_each_pawn, self.CENTER_Y, image=img_ref_black_pawn)
+        self.canvas.tag_bind(black_pawn2, "<Button-1>", self.on_button_click)
+
+        new_x_for_each_pawn += 125
+
+        black_pawn3 = self.canvas.create_image(new_x_for_each_pawn, self.CENTER_Y, image=img_ref_black_pawn)
+        self.canvas.tag_bind(black_pawn3, "<Button-1>", self.on_button_click)
+
+        new_x_for_each_pawn += 125
+
+        black_pawn4 = self.canvas.create_image(new_x_for_each_pawn, self.CENTER_Y, image=img_ref_black_pawn)
+        self.canvas.tag_bind(black_pawn4, "<Button-1>", self.on_button_click)
+
+        new_x_for_each_pawn += 125
+
+        black_pawn5 = self.canvas.create_image(new_x_for_each_pawn, self.CENTER_Y, image=img_ref_black_pawn)
+        self.canvas.tag_bind(black_pawn5, "<Button-1>", self.on_button_click)
+
+        new_x_for_each_pawn += 125
+
+        black_pawn6 = self.canvas.create_image(new_x_for_each_pawn, self.CENTER_Y, image=img_ref_black_pawn)
+        self.canvas.tag_bind(black_pawn6, "<Button-1>", self.on_button_click)
+
+        new_x_for_each_pawn += 125
+
+        black_pawn7 = self.canvas.create_image(new_x_for_each_pawn, self.CENTER_Y, image=img_ref_black_pawn)
+        self.canvas.tag_bind(black_pawn7, "<Button-1>", self.on_button_click)
+
+        new_x_for_each_pawn += 125
+
+        black_pawn8 = self.canvas.create_image(new_x_for_each_pawn, self.CENTER_Y, image=img_ref_black_pawn)
+        self.canvas.tag_bind(black_pawn8, "<Button-1>", self.on_button_click)
 
     def white_pawn(self):
         global img_ref_white_pawn
@@ -85,27 +123,43 @@ class ChessPieces:
         img_ref_black_rook = self.image_taketh_and_changeth(".\\blackRook.png")
         new_y_for_each_rook = 150 // 2
         new_x_for_each_rook = self.CENTER_X
-        for _ in range(2):
-            self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_black_rook)
-            new_x_for_each_rook = 1000 - new_x_for_each_rook
+        
+        black_rook1 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_black_rook)
+        self.canvas.tag_bind(black_rook1, "<Button-1>", self.on_button_click)
+
+        new_x_for_each_rook = 1000 - new_x_for_each_rook
+
+        black_rook2 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_black_rook)
+        self.canvas.tag_bind(black_rook2, "<Button-1>", self.on_button_click)
 
     def white_rook(self):
         global img_ref_white_rook
         img_ref_white_rook = self.image_taketh_and_changeth(".\\WhiteRook.png")
         new_y_for_each_rook = 1000 - 150 // 2
         new_x_for_each_rook = self.CENTER_X
-        for _ in range(2):
-            self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_rook)
-            new_x_for_each_rook = 1000 - new_x_for_each_rook
+        
+        white_rook1 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_rook)
+        self.canvas.tag_bind(white_rook1, "<Button-1>", self.on_button_click)
+
+        new_x_for_each_rook = 1000 - new_x_for_each_rook
+
+        white_rook2 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_rook)
+        self.canvas.tag_bind(white_rook2, "<Button-1>", self.on_button_click)
 
     def black_horse(self):
         global img_ref_black_horse
         img_ref_black_horse = self.image_taketh_and_changeth(".\\BlackHorse.png")
         new_y_for_each_rook = 150 // 2
         new_x_for_each_rook = self.CENTER_X + 125
-        for _ in range(2):
-            self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_black_horse)
-            new_x_for_each_rook = 1000 - new_x_for_each_rook
+        
+        black_horse1 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_black_horse)
+        self.canvas.tag_bind(black_horse1, "<Button-1>", self.on_button_click)
+
+        new_x_for_each_rook = 1000 - new_x_for_each_rook
+
+        black_horse2 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_black_horse)
+        self.canvas.tag_bind(black_horse2, "<Button-1>", self.on_button_click)
+
 
     def white_horse(self):
         global img_ref_white_horse
