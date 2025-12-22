@@ -9,6 +9,7 @@ class movement_of_indivisual_pieces:
         # self.X1, self.Y1 = 0, 250
         self.SIDE_LENGTH = 125
         # self.X2, self.Y2 = self.X1 + self.SIDE_LENGTH, self.Y1 + self.SIDE_LENGTH
+        self.y_max = 300
     
     def button_click(self, event, pawn_item_id):
         
@@ -18,21 +19,24 @@ class movement_of_indivisual_pieces:
 
         if self.first_turn_done:
 
-            spaces_to_move = []
+            if pawn_y_position <= self.y_max:
 
-            X1, Y1 = pawn_x_position - 127 // 2, (pawn_y_position - 130 // 2) + self.SIDE_LENGTH
-            X2, Y2 = X1 + self.SIDE_LENGTH, Y1 + self.SIDE_LENGTH
+                spaces_to_move = []
 
-            if pawn_y_position <= 190:
-                for _ in range(2):
+                X1, Y1 = pawn_x_position - 127 // 2, (pawn_y_position - 130 // 2) + self.SIDE_LENGTH
+                X2, Y2 = X1 + self.SIDE_LENGTH, Y1 + self.SIDE_LENGTH
+
+                if pawn_y_position <= 190:
+                    for _ in range(2):
+                        spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
+                        Y1 += 125
+                        Y2 += 125
+                else:
                     spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
-                    Y1 += 125
-                    Y2 += 125
-            else:
-                spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
 
-            for spaces in spaces_to_move:
-                self.canvas.tag_bind(spaces, "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id))
+                
+                self.canvas.tag_bind(spaces_to_move[0], "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id))
+                self.canvas.tag_bind(spaces_to_move[1], "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id))
     
     def white_pawns_movement(self, event, pawn_y_position, pawn_x_position):
         spaces_to_move = []
