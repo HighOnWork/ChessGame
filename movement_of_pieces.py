@@ -10,10 +10,13 @@ class movement_of_indivisual_pieces:
         self.SIDE_LENGTH = 125
         # self.X2, self.Y2 = self.X1 + self.SIDE_LENGTH, self.Y1 + self.SIDE_LENGTH
         self.y_max = 300
+        self.current_event_tag = None
     
     def button_click(self, event, pawn_item_id):
         
         self.canvas.move(pawn_item_id, 0, 125)
+        self.canvas.tag_unbind(self.current_event_tag, '<Button-1>')
+        self.current_event_tag = None
 
     def black_pawns_movement(self, event, pawn_y_position, pawn_x_position, pawn_item_id):
 
@@ -34,9 +37,11 @@ class movement_of_indivisual_pieces:
                 else:
                     spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
 
-                
-                self.canvas.tag_bind(spaces_to_move[0], "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id))
-                self.canvas.tag_bind(spaces_to_move[1], "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id))
+                self.current_event_tag = spaces_to_move[0]
+                self.canvas.tag_bind(self.current_event_tag, "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id))
+
+                self.current_event_tag = spaces_to_move[1]
+                self.canvas.tag_bind(self.current_event_tag, "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id))
     
     def white_pawns_movement(self, event, pawn_y_position, pawn_x_position):
         spaces_to_move = []
