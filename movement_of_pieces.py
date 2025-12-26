@@ -1,5 +1,5 @@
 # from chess_pieces import ChessPieces
-
+# import tkinter as tk
 
 class movement_of_indivisual_pieces:
     def __init__(self, canvas):
@@ -10,13 +10,25 @@ class movement_of_indivisual_pieces:
         self.SIDE_LENGTH = 125
         # self.X2, self.Y2 = self.X1 + self.SIDE_LENGTH, self.Y1 + self.SIDE_LENGTH
         self.y_max = 300
-        self.current_event_tag = None
-    
-    def button_click(self, event, pawn_item_id):
-        
+        self.current_event_tag1 = None
+        self.current_event_tag2 = None
+        self.BLACK_PAWN_MOVE1 = False
+    def button_click(self, event, pawn_item_id, rectangles):
         self.canvas.move(pawn_item_id, 0, 125)
-        self.canvas.tag_unbind(self.current_event_tag, '<Button-1>')
-        self.current_event_tag = None
+        for rec in rectangles:
+            self.canvas.itemconfigure(rec, state='hidden')
+        self.canvas.tag_unbind(self.current_event_tag1, '<Button-1>')
+        self.current_event_tag1 = None
+        self.BLACK_PAWN_MOVE1 = True
+        
+    def pawn_button_click_first_time_second_way(self, event, pawn_item_id, rectangles):
+        if self.BLACK_PAWN_MOVE1 == False:
+            self.canvas.move(pawn_item_id, 0, 125 * 2)
+            for rec in rectangles:
+                self.canvas.itemconfigure(rec, state='hidden')
+            self.canvas.tag_unbind(self.current_event_tag2, "<Button-1>")
+            self.current_event_tag2 = None
+            self.BLACK_PAWN_MOVE1 = True
 
     def black_pawns_movement(self, event, pawn_y_position, pawn_x_position, pawn_item_id):
 
@@ -30,18 +42,21 @@ class movement_of_indivisual_pieces:
                 X2, Y2 = X1 + self.SIDE_LENGTH, Y1 + self.SIDE_LENGTH
 
                 if pawn_y_position <= 190:
-                    for _ in range(2):
+                    for i in range(2):
+                        if self.BLACK_PAWN_MOVE1 and i == 1:
+                            continue
                         spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
                         Y1 += 125
                         Y2 += 125
+                        # tk.Misc.lift(spaces_to_move[i])
                 else:
                     spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
 
-                self.current_event_tag = spaces_to_move[0]
-                self.canvas.tag_bind(self.current_event_tag, "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id))
+                self.current_event_tag1 = spaces_to_move[0]
+                self.canvas.tag_bind(self.current_event_tag1, "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id, rectangles=spaces_to_move))
 
-                self.current_event_tag = spaces_to_move[1]
-                self.canvas.tag_bind(self.current_event_tag, "<Button-1>", lambda event: self.button_click(event=event, pawn_item_id=pawn_item_id))
+                self.current_event_tag2 = spaces_to_move[1]
+                self.canvas.tag_bind(self.current_event_tag2, "<Button-1>", lambda event: self.pawn_button_click_first_time_second_way(event=event, pawn_item_id=pawn_item_id, rectangles=spaces_to_move))
     
     def white_pawns_movement(self, event, pawn_y_position, pawn_x_position):
         spaces_to_move = []
