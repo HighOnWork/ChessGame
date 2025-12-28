@@ -30,23 +30,34 @@ class movement_of_indivisual_pieces:
         #         return True
 
     def button_click(self, event, pawn_item_id, rectangles):
+        index = 0
         self.canvas.move(pawn_item_id, 0, 125)
         for rec in rectangles:
             self.canvas.itemconfigure(rec, state='hidden')
         self.canvas.tag_unbind(self.current_event_tag1, '<Button-1>')
         self.current_event_tag1 = None
-        if pawn_item_id == 49:
-            self.BLACK_PAWN_MOVE[0] = True
+        for x in range(49, 58):
+        # if pawn_item_id == 49:
+            if pawn_item_id == x:
+                self.BLACK_PAWN_MOVE[index] = True
+            else:
+                index += 1
 
     def pawn_button_click_first_time_second_way(self, event, pawn_item_id, rectangles):
-        if pawn_item_id == 49:
-            if self.BLACK_PAWN_MOVE[0] == False:
-                self.canvas.move(pawn_item_id, 0, 125 * 2)
-                for rec in rectangles:
-                    self.canvas.itemconfigure(rec, state='hidden')
-                self.canvas.tag_unbind(self.current_event_tag2, "<Button-1>")
-                self.current_event_tag2 = None
-                self.BLACK_PAWN_MOVE[0] = True
+        index = 0
+        for x in range(49, 58):
+            if pawn_item_id == x:
+                if self.BLACK_PAWN_MOVE[index] == False:
+        # if pawn_item_id == 49:
+        #     if self.BLACK_PAWN_MOVE[0] == False:
+                    self.canvas.move(pawn_item_id, 0, 125 * 2)
+                    for rec in rectangles:
+                        self.canvas.itemconfigure(rec, state='hidden')
+                    self.canvas.tag_unbind(self.current_event_tag2, "<Button-1>")
+                    self.current_event_tag2 = None
+                    self.BLACK_PAWN_MOVE[index] = True
+            else:
+                index += 1
 
     def black_pawns_movement(self, event, pawn_item_id):
         
