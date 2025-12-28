@@ -12,15 +12,22 @@ class movement_of_indivisual_pieces:
         self.y_max = 900
         self.current_event_tag1 = None
         self.current_event_tag2 = None
-        self.BLACK_PAWN_MOVE = [False] * 7
+        self.BLACK_PAWN_MOVE = [False] * 8
 
     def black_pawn_selector(self, ID, i):
-        if ID == 49:
-            if self.BLACK_PAWN_MOVE[0] and i == 1:
-                return True
-        elif ID == 50:
-            if self.BLACK_PAWN_MOVE[1] and i ==1:
-                return True
+        index_number = 0
+        for x in range(49, 58):
+            if ID == x:
+                if self.BLACK_PAWN_MOVE[index_number] and i == 1:
+                    return True
+            else:
+                index_number += 1
+        # if ID == 49:
+        #     if self.BLACK_PAWN_MOVE[0] and i == 1:
+        #         return True
+        # elif ID == 50:
+        #     if self.BLACK_PAWN_MOVE[1] and i ==1:
+        #         return True
 
     def button_click(self, event, pawn_item_id, rectangles):
         self.canvas.move(pawn_item_id, 0, 125)
