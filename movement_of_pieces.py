@@ -13,7 +13,17 @@ class movement_of_indivisual_pieces:
         self.current_event_tag1 = None
         self.current_event_tag2 = None
         self.BLACK_PAWN_MOVE = [False] * 8
+        self.WHITE_PAWN_MOVE = [False] * 8
 
+    def white_pawn_selector(self, ID, i):
+        index_number = 0
+        for x in range(57, 66):
+            if ID == x:
+                if self.WHITE_PAWN_MOVE[index_number] and i == 1:
+                    return True
+            else:
+                index_number += 1
+    
     def black_pawn_selector(self, ID, i):
         index_number = 0
         for x in range(49, 58):
@@ -36,26 +46,26 @@ class movement_of_indivisual_pieces:
             self.canvas.itemconfigure(rec, state='hidden')
         self.canvas.tag_unbind(self.current_event_tag1, '<Button-1>')
         self.current_event_tag1 = None
-        # for x in range(49, 58):
-        # # if pawn_item_id == 49:
-        #     if pawn_item_id == x:
-        #         self.BLACK_PAWN_MOVE[index] = True
-        #     else:
-        #         index += 1
+        for x in range(57, 65):
+        # if pawn_item_id == 49:
+            if pawn_item_id == x:
+                self.WHITE_PAWN_MOVE[index] = True
+            else:
+                index += 1
 
     def pawn_button_clicked_for_white_pawns_first_time_second_way(self, event, pawn_item_id, rectangles):
         index = 0
-        # for x in range(49, 58):
-        #     if pawn_item_id == x:
-                # if self.BLACK_PAWN_MOVE[index] == False:
+        for x in range(49, 58):
+            if pawn_item_id == x:
+                if self.WHITE_PAWN_MOVE[index] == False:
         # if pawn_item_id == 49:
         #     if self.BLACK_PAWN_MOVE[0] == False:
-        self.canvas.move(pawn_item_id, 0, -125 * 2)
-        for rec in rectangles:
-            self.canvas.itemconfigure(rec, state='hidden')
-        self.canvas.tag_unbind(self.current_event_tag2, "<Button-1>")
-        self.current_event_tag2 = None
-        self.BLACK_PAWN_MOVE[index] = True
+                    self.canvas.move(pawn_item_id, 0, -125 * 2)
+                    for rec in rectangles:
+                        self.canvas.itemconfigure(rec, state='hidden')
+                    self.canvas.tag_unbind(self.current_event_tag2, "<Button-1>")
+                    self.current_event_tag2 = None
+                    self.WHITE_PAWN_MOVE[index] = True
             # else:
             #     index += 1
 
@@ -92,7 +102,6 @@ class movement_of_indivisual_pieces:
     def black_pawns_movement(self, event, pawn_item_id):
         
         coords = self.canvas.coords(pawn_item_id)
-        print(coords)
 
         current_pawn_x = coords[0]
         current_pawn_y = coords[1]
@@ -144,7 +153,11 @@ class movement_of_indivisual_pieces:
         X2, Y2 = X1 + self.SIDE_LENGTH, Y1 + self.SIDE_LENGTH
 
         if pawn_y_position >= (1000 - 190):
-            for _ in range(2):
+
+            for i in range(2):
+                if self.white_pawn_selector(ID=ID, i=i):
+                    continue
+                
                 spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
                 Y1 += 125
                 Y2 += 125
