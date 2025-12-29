@@ -56,9 +56,10 @@ class movement_of_indivisual_pieces:
 
     def pawn_button_clicked_for_white_pawns_first_time_second_way(self, event, pawn_item_id, rectangles):
         index = 0
-        for x in range(49, 58):
+        for x in range(57, 65):
             if pawn_item_id == x:
                 if self.WHITE_PAWN_MOVE[index] == False:
+                    print("It is working btw")
         # if pawn_item_id == 49:
         #     if self.BLACK_PAWN_MOVE[0] == False:
                     self.canvas.move(pawn_item_id, 0, -125 * 2)
@@ -67,10 +68,12 @@ class movement_of_indivisual_pieces:
                     self.canvas.tag_unbind(self.current_event_tag2, "<Button-1>")
                     self.current_event_tag2 = None
                     self.WHITE_PAWN_MOVE[index] = True
+            else:
+                index += 1
+
         self.first_turn_done = True
 
-            # else:
-            #     index += 1
+            
 
     def button_clicked_for_black_pawns(self, event, pawn_item_id, rectangles):
         index = 0
@@ -154,7 +157,7 @@ class movement_of_indivisual_pieces:
         pawn_x_position = coords[0]
         pawn_y_position = coords[1]
 
-        X1, Y1 = (pawn_x_position - 125 // 2) - 1, (pawn_y_position - 125 - (120 // 2)) - self.SIDE_LENGTH
+        X1, Y1 = (pawn_x_position - 125 // 2) - 1, (pawn_y_position - (120 // 2)) - self.SIDE_LENGTH
         X2, Y2 = X1 + self.SIDE_LENGTH, Y1 + self.SIDE_LENGTH
 
         if pawn_y_position >= (1000 - 190):
@@ -164,8 +167,8 @@ class movement_of_indivisual_pieces:
                     continue
                 
                 spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
-                Y1 += 125
-                Y2 += 125
+                Y1 -= 125
+                Y2 -= 125
         else:
             spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
 
