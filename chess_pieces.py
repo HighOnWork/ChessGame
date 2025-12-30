@@ -220,3 +220,60 @@ class ChessPieces:
 
         white_bishop2 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_bishop)
         self.canvas.tag_bind(white_bishop2, "<Button-1>", self.on_button_click)
+
+
+    def white_queen(self):
+            global img_ref_white_bishop
+            img_ref_white_bishop = self.image_taketh_and_changeth(".\\WhiteBishop.png")
+            new_y_for_each_rook = 1000 - 150 // 2
+            new_x_for_each_rook = self.CENTER_X + 125 * 2
+            
+            white_bishop1 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_bishop)
+            self.canvas.tag_bind(white_bishop1, "<Button-1>", self.on_button_click)
+
+            new_x_for_each_rook = 1000 - new_x_for_each_rook
+
+            white_bishop2 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_bishop)
+            self.canvas.tag_bind(white_bishop2, "<Button-1>", self.on_button_click)
+
+    def white_king(self):
+            global img_ref_white_bishop
+            img_ref_white_bishop = self.image_taketh_and_changeth(".\\WhiteBishop.png")
+            new_y_for_each_rook = 1000 - 150 // 2
+            new_x_for_each_rook = self.CENTER_X + 125 * 2
+            
+            white_bishop1 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_bishop)
+            self.canvas.tag_bind(white_bishop1, "<Button-1>", self.on_button_click)
+
+            new_x_for_each_rook = 1000 - new_x_for_each_rook
+
+            white_bishop2 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_bishop)
+            self.canvas.tag_bind(white_bishop2, "<Button-1>", self.on_button_click)
+
+    def black_queen(self):
+            global img_ref_white_bishop
+            img_ref_white_bishop = self.image_taketh_and_changeth(".\\WhiteBishop.png")
+            new_y_for_each_rook = 1000 - 150 // 2
+            new_x_for_each_rook = self.CENTER_X + 125 * 2
+            
+            white_bishop1 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_bishop)
+            self.canvas.tag_bind(white_bishop1, "<Button-1>", self.on_button_click)
+
+            new_x_for_each_rook = 1000 - new_x_for_each_rook
+
+            white_bishop2 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_bishop)
+            self.canvas.tag_bind(white_bishop2, "<Button-1>", self.on_button_click)
+
+    def black_king(self):
+            global img_ref_white_bishop
+            img_ref_white_bishop = self.image_taketh_and_changeth(".\\WhiteBishop.png")
+            new_y_for_each_rook = 1000 - 150 // 2
+            new_x_for_each_rook = self.CENTER_X + 125 * 2
+            
+            white_bishop1 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_bishop)
+            self.canvas.tag_bind(white_bishop1, "<Button-1>", self.on_button_click)
+
+            new_x_for_each_rook = 1000 - new_x_for_each_rook
+
+            white_bishop2 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_white_bishop)
+            self.canvas.tag_bind(white_bishop2, "<Button-1>", self.on_button_click)
