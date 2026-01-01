@@ -21,27 +21,81 @@ class movement_of_indivisual_pieces:
         self.which_side_can_take = ""
         self.move_count = 1
 
-    def attack(self, event, ID, coord_point_x, coord_point_y):
-        # all_white_pawns = self.canvas.find_withtag("white_pawn")
 
-        # for pawn_id in all_white_pawns:
-        #     coords = self.canvas.coords(pawn_id)
+    def remove_spaces(self):
+        if self.spaces_to_take:
+                for space in self.spaces_to_take:
+                    self.canvas.delete(space)
+                self.spaces_to_take = []
+        
+        if self.spaces_to_move:
+                for space in self.spaces_to_move:
+                    self.canvas.delete(space)
+                self.spaces_to_move = []
 
-        #     if not coords:
-        #         continue
+    def attack(self, event, ID):
+        all_white_pawns = self.canvas.find_withtag("white_pawn")
 
-        #     white_x = coords[0]
-        #     white_y = coords[1]
+        
 
         if self.which_side_can_take == "right" or self.which_side_can_take == "both":
             self.canvas.move(ID, 125, 125)
+            black_pawn_coord = self.canvas.coords(ID)
+
+            for pawn_id in all_white_pawns:
+                coords = self.canvas.coords(pawn_id)
+
+                if not coords:
+                    continue
+
+                white_x = coords[0]
+                white_y = coords[1]
+
+                if abs(white_x - black_pawn_coord[0]) < 20 and abs(white_y - black_pawn_coord[1]) < 20:
+                    self.canvas.delete(pawn_id)
+
         elif self.which_side_can_take == "left":
             self.canvas.move(ID, -125, 125)
+            black_pawn_coord = self.canvas.coords(ID)
+            for pawn_id in all_white_pawns:
+                coords = self.canvas.coords(pawn_id)
+
+                if not coords:
+                    continue
+
+                white_x = coords[0]
+                white_y = coords[1]
+
+                if abs(white_x - black_pawn_coord[0]) < 20 and abs(white_y - black_pawn_coord[1]) < 20:
+                    self.canvas.delete(pawn_id)
+
+        self.remove_spaces()
+
+        self.move_count += 1
     
-    def attack_left(self, event, ID, coord_point_x, coord_point_y):
+
+    def attack_left(self, event, ID):
+        all_white_pawns = self.canvas.find_withtag("white_pawn")
+
         self.canvas.move(ID, -125, 125)
 
+        black_pawn_coord = self.canvas.coords(ID)
 
+        for pawn_id in all_white_pawns:
+                coords = self.canvas.coords(pawn_id)
+
+                if not coords:
+                    continue
+
+                white_x = coords[0]
+                white_y = coords[1]
+
+                if abs(white_x - black_pawn_coord[0]) < 20 and abs(white_y - black_pawn_coord[1]) < 20:
+                    self.canvas.delete(pawn_id)
+        
+        self.remove_spaces()
+
+        self.move_count += 1
 
         print("Attack")
 
@@ -334,11 +388,11 @@ class movement_of_indivisual_pieces:
 
                     if len(self.spaces_to_take) > 0:
                         self.current_event_tag3 = self.spaces_to_take[0]
-                        self.canvas.tag_bind(self.current_event_tag3, "<Button-1>", lambda event: self.attack(event=event, ID=pawn_item_id, coord_point_x=current_pawn_x, coord_point_y=current_pawn_y))
+                        self.canvas.tag_bind(self.current_event_tag3, "<Button-1>", lambda event: self.attack(event=event, ID=pawn_item_id))
 
                     if len(self.spaces_to_take) > 1:
                         self.current_event_tag4 = self.spaces_to_take[1]
-                        self.canvas.tag_bind(self.current_event_tag4, "<Button-1>", lambda event: self.attack_left(event=event, ID=pawn_item_id, coord_point_x=current_pawn_x, coord_point_y=current_pawn_y))
+                        self.canvas.tag_bind(self.current_event_tag4, "<Button-1>", lambda event: self.attack_left(event=event, ID=pawn_item_id))
                         
 
 
