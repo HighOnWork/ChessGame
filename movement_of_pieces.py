@@ -21,7 +21,28 @@ class movement_of_indivisual_pieces:
         self.which_side_can_take = ""
         self.move_count = 1
 
-    def attack(self, event):
+    def attack(self, event, ID, coord_point_x, coord_point_y):
+        # all_white_pawns = self.canvas.find_withtag("white_pawn")
+
+        # for pawn_id in all_white_pawns:
+        #     coords = self.canvas.coords(pawn_id)
+
+        #     if not coords:
+        #         continue
+
+        #     white_x = coords[0]
+        #     white_y = coords[1]
+
+        if self.which_side_can_take == "right" or self.which_side_can_take == "both":
+            self.canvas.move(ID, 125, 125)
+        elif self.which_side_can_take == "left":
+            self.canvas.move(ID, -125, 125)
+    
+    def attack_left(self, event, ID, coord_point_x, coord_point_y):
+        self.canvas.move(ID, -125, 125)
+
+
+
         print("Attack")
 
     def is_white_pawn_left_or_right(self, coord_point_x, coord_point_y):
@@ -313,11 +334,11 @@ class movement_of_indivisual_pieces:
 
                     if len(self.spaces_to_take) > 0:
                         self.current_event_tag3 = self.spaces_to_take[0]
-                        self.canvas.tag_bind(self.current_event_tag3, "<Button-1>", lambda event: self.attack(event=event))
+                        self.canvas.tag_bind(self.current_event_tag3, "<Button-1>", lambda event: self.attack(event=event, ID=pawn_item_id, coord_point_x=current_pawn_x, coord_point_y=current_pawn_y))
 
                     if len(self.spaces_to_take) > 1:
                         self.current_event_tag4 = self.spaces_to_take[1]
-                        self.canvas.tag_bind(self.current_event_tag4, "<Button-1>", lambda event: self.attack(event=event))
+                        self.canvas.tag_bind(self.current_event_tag4, "<Button-1>", lambda event: self.attack_left(event=event, ID=pawn_item_id, coord_point_x=current_pawn_x, coord_point_y=current_pawn_y))
                         
 
 
