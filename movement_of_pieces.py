@@ -13,6 +13,7 @@ class movement_of_indivisual_pieces:
         self.current_event_tag1 = None
         self.current_event_tag2 = None
         self.current_event_tag3 = None
+        self.current_event_tag4 = None
         self.BLACK_PAWN_MOVE = [False] * 8
         self.WHITE_PAWN_MOVE = [False] * 8
         self.spaces_to_move = []
@@ -24,6 +25,9 @@ class movement_of_indivisual_pieces:
         print("Attack")
 
     def is_white_pawn_left_or_right(self, coord_point_x, coord_point_y):
+
+        left_true = False
+        right_true = False
 
         all_white_pawns = self.canvas.find_withtag("white_pawn")
         
@@ -47,15 +51,23 @@ class movement_of_indivisual_pieces:
                 print("Black pawn can capture!")
                 self.which_side_can_take = "left"
                 print(self.which_side_can_take)
-                return True
+                left_true = True
             
-            if is_right_column and is_directly_above:
+            elif is_right_column and is_directly_above:
                 print("Black pawn can capture!")
                 self.which_side_can_take = "right"
                 print(self.which_side_can_take)
-                return True
+                right_true = True
 
-        return False
+        if left_true and right_true:
+            print("Black pawn can capture on both sides!")
+            self.which_side_can_take = "both"
+            print(self.which_side_can_take)
+            return True
+        elif left_true or right_true:
+            return True
+        else:
+            return False
 
     def is_white_pawn_there(self, coord_point_x, coord_point_y):
         
@@ -223,6 +235,8 @@ class movement_of_indivisual_pieces:
 
     def black_pawns_movement(self, event, pawn_item_id):
 
+        both_exist = False
+
         if self.move_count % 2 == 0:
             
             coords = self.canvas.coords(pawn_item_id)
@@ -257,9 +271,18 @@ class movement_of_indivisual_pieces:
                             x_can_take_at1 = current_pawn_x - 93 * 2 - 1
                         elif self.which_side_can_take == "right":
                             x_can_take_at1 = current_pawn_x + 125 // 2
+                        elif self.which_side_can_take == "both":
+                            x_can_take_at1 = current_pawn_x - 93 * 2 - 1
+                            other_x = current_pawn_x + 125 // 2
+                            both_exist = True
+
                         
                         y_can_take_at2 = y_can_take_at1 + self.SIDE_LENGTH
                         x_can_take_at2 = x_can_take_at1 + self.SIDE_LENGTH
+
+                        if both_exist:
+                            other_x2 = other_x + self.SIDE_LENGTH
+                            self.spaces_to_take.append(self.canvas.create_rectangle(other_x, y_can_take_at1, other_x2, y_can_take_at2, fill="orange", width=2))
 
                         self.spaces_to_take.append(self.canvas.create_rectangle(x_can_take_at1, y_can_take_at1, x_can_take_at2, y_can_take_at2, fill="orange", width=2))
                         
@@ -291,6 +314,10 @@ class movement_of_indivisual_pieces:
                         if len(self.spaces_to_take) > 0:
                             self.current_event_tag3 = self.spaces_to_take[0]
                             self.canvas.tag_bind(self.current_event_tag3, "<Button-1>", lambda event: self.attack(event=event))
+
+                        if len(self.spaces_to_take) > 1:
+                            self.current_event_tag4 = self.spaces_to_take[1]
+                            self.canvas.tag_bind(self.current_event_tag4, "<Button-1>", lambda event: self.attack(event=event))
 
         
     def white_pawns_movement(self, event, ID):
