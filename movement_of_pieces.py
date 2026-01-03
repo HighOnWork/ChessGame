@@ -22,6 +22,44 @@ class movement_of_indivisual_pieces:
         self.move_count = 1
 
 
+    def is_something_ahead_for_black_rook(self, rook_x, rook_y):
+        should_make_square = False
+        all_white_pawns = self.canvas.find_withtag("white_pawn")
+        all_black_pawns = self.canvas.find_withtag("black_pawn")
+        
+        for pawn_id in all_white_pawns:
+            coords = self.canvas.coords(pawn_id)
+            
+            if not coords:
+                continue
+                
+            white_x = coords[0]
+            white_y = coords[1]
+
+            same_column = abs(rook_x - white_x) < 20
+            directly_above = abs(white_y - (rook_y + 125)) < 20
+            if same_column and directly_above:
+                print("White pawn in the way") 
+                return False
+            else:
+                for pawn_id in all_black_pawns:
+                    coords = self.canvas.coords(pawn_id)
+                    
+                    if not coords:
+                        continue
+                        
+                    black_x = coords[0]
+                    black_y = coords[1]
+
+                    same_column = abs(rook_x - black_x) < 20
+                    directly_above = abs(black_y - (rook_y + 125)) < 20
+                    if same_column and directly_above:
+                        print("Black pawn in the way")
+                        return False
+                    else:
+                        should_make_square = True
+        return should_make_square
+
     def remove_spaces(self):
         if self.spaces_to_take:
                 for space in self.spaces_to_take:
@@ -413,6 +451,23 @@ class movement_of_indivisual_pieces:
             else:
                 index += 1
         self.move_count += 1
+
+
+    def black_rook_movement(self, event, rook_item_id):
+        if self.move_count % 2 == 0:
+            
+            coords = self.canvas.coords(rook_item_id)
+
+            print(coords)
+
+            current_rook_x = coords[0]
+            current_rook_y = coords[1]
+
+            if self.is_something_ahead_for_black_rook(rook_x = current_rook_x, rook_y=current_rook_y):
+                X1, Y1 = current_rook_x - 127 // 2, (current_rook_y - 130 // 2) + self.SIDE_LENGTH
+                X2, Y2 = X1 + self.SIDE_LENGTH, Y1 + self.SIDE_LENGTH
+
+                self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2)
 
     def black_pawns_movement(self, event, pawn_item_id):
 

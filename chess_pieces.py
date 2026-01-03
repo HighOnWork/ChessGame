@@ -144,15 +144,21 @@ class ChessPieces:
         global img_ref_black_rook
         img_ref_black_rook = self.image_taketh_and_changeth(".\\blackRook.png")
         new_y_for_each_rook = 150 // 2
-        new_x_for_each_rook = self.CENTER_X
+        new_x_for_each_rook = []
+
+        new_x_for_each_rook.append(self.CENTER_X)
+        prev_value = new_x_for_each_rook[0]
+        new_x_for_each_rook.append(1000 - prev_value)
         
-        black_rook1 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_black_rook)
-        self.canvas.tag_bind(black_rook1, "<Button-1>", self.on_button_click)
+        black_rook1 = self.canvas.create_image(new_x_for_each_rook[0], new_y_for_each_rook, image=img_ref_black_rook, tags="black_rook")
+        self.canvas.tag_bind(black_rook1, 
+                             "<Button-1>", 
+                             lambda event, item_id=black_rook1: self.movement_of_indiv.black_rook_movement(event, rook_item_id=item_id))
 
-        new_x_for_each_rook = 1000 - new_x_for_each_rook
-
-        black_rook2 = self.canvas.create_image(new_x_for_each_rook, new_y_for_each_rook, image=img_ref_black_rook)
-        self.canvas.tag_bind(black_rook2, "<Button-1>", self.on_button_click)
+        black_rook2 = self.canvas.create_image(new_x_for_each_rook[1], new_y_for_each_rook, image=img_ref_black_rook, tags="black_rook")
+        self.canvas.tag_bind(black_rook2, 
+                             "<Button-1>", 
+                             lambda event, item_id=black_rook2: self.movement_of_indiv.black_rook_movement(event, rook_item_id=item_id))
 
     def white_rook(self):
         global img_ref_white_rook
