@@ -21,7 +21,68 @@ class movement_of_indivisual_pieces:
         self.which_side_can_take = ""
         self.move_count = 1
 
+    def remove_spaces(self):
+        if self.spaces_to_take:
+                for space in self.spaces_to_take:
+                    self.canvas.delete(space)
+                self.spaces_to_take.clear()
+        
+        if self.spaces_to_move:
+                for space in self.spaces_to_move:
+                    self.canvas.delete(space)
+                self.spaces_to_move.clear()
 
+    def button_clicked_for_black_rooks(self, event, pawn_item_id, clicked_square_id):
+        target_coords = self.canvas.coords(clicked_square_id)
+        rook_coords = self.canvas.coords(pawn_item_id)
+
+        if target_coords and rook_coords:
+            
+            dx = target_coords[0] - (rook_coords[0] - 127 // 2)
+            dy = target_coords[1] - (rook_coords[1] - 150 // 2)
+            self.canvas.move(pawn_item_id, dx, dy)
+
+        self.remove_spaces()
+        self.move_count += 1
+
+    def is_something_behind_black_rook(self, rook_x, rook_y):
+        should_make_square = False
+        all_white_pawns = self.canvas.find_withtag("white_pawn")
+        all_black_pawns = self.canvas.find_withtag("black_pawn")
+        
+        for pawn_id in all_white_pawns:
+            coords = self.canvas.coords(pawn_id)
+            
+            if not coords:
+                continue
+                
+            white_x = coords[0]
+            white_y = coords[1]
+
+            same_column = abs(rook_x - white_x) < 20
+            directly_below = abs(white_y - (rook_y - 125)) < 20
+            if same_column and directly_below:
+                print("White pawn in the way back") 
+                return False
+            
+        for pawn_id in all_black_pawns:
+            coords = self.canvas.coords(pawn_id)
+            
+            if not coords:
+                continue
+                
+            black_x = coords[0]
+            black_y = coords[1]
+
+            same_column = abs(rook_x - black_x) < 20
+            directly_below = abs(black_y - (rook_y - 125)) < 20
+            if same_column and directly_below:
+                print("Black pawn in the way back")
+                return False
+            else:
+                should_make_square = True
+        return should_make_square
+    
     def is_something_ahead_for_black_rook(self, rook_x, rook_y):
         should_make_square = False
         all_white_pawns = self.canvas.find_withtag("white_pawn")
@@ -41,35 +102,24 @@ class movement_of_indivisual_pieces:
             if same_column and directly_above:
                 print("White pawn in the way") 
                 return False
+            
+        for pawn_id in all_black_pawns:
+            coords = self.canvas.coords(pawn_id)
+            
+            if not coords:
+                continue
+                
+            black_x = coords[0]
+            black_y = coords[1]
+
+            same_column = abs(rook_x - black_x) < 20
+            directly_above = abs(black_y - (rook_y + 125)) < 20
+            if same_column and directly_above:
+                print("Black pawn in the way")
+                return False
             else:
-                for pawn_id in all_black_pawns:
-                    coords = self.canvas.coords(pawn_id)
-                    
-                    if not coords:
-                        continue
-                        
-                    black_x = coords[0]
-                    black_y = coords[1]
-
-                    same_column = abs(rook_x - black_x) < 20
-                    directly_above = abs(black_y - (rook_y + 125)) < 20
-                    if same_column and directly_above:
-                        print("Black pawn in the way")
-                        return False
-                    else:
-                        should_make_square = True
+                should_make_square = True
         return should_make_square
-
-    def remove_spaces(self):
-        if self.spaces_to_take:
-                for space in self.spaces_to_take:
-                    self.canvas.delete(space)
-                self.spaces_to_take = []
-        
-        if self.spaces_to_move:
-                for space in self.spaces_to_move:
-                    self.canvas.delete(space)
-                self.spaces_to_move = []
     
     def whitePawnAttack(self, event, ID):
         all_black_pawns = self.canvas.find_withtag("black_pawn")
@@ -365,13 +415,7 @@ class movement_of_indivisual_pieces:
     def button_clicked_for_white_pawns(self, event, pawn_item_id, rectangles):
         index = 0
         self.canvas.move(pawn_item_id, 0, -125)
-        for rec in rectangles:
-            self.canvas.delete(rec)
-        self.spaces_to_move = []
-        try:
-            self.canvas.tag_unbind(self.current_event_tag1, '<Button-1>')
-        except:
-            print("Didnt work")
+        self.remove_spaces()
         self.current_event_tag1 = None
         for x in range(57, 65):
         # if pawn_item_id == 49:
@@ -391,13 +435,7 @@ class movement_of_indivisual_pieces:
         # if pawn_item_id == 49:
         #     if self.BLACK_PAWN_MOVE[0] == False:
                     self.canvas.move(pawn_item_id, 0, -125 * 2)
-                    for rec in rectangles:
-                        self.canvas.delete(rec)
-                    self.spaces_to_move = []
-                    try:
-                        self.canvas.tag_unbind(self.current_event_tag2, "<Button-1>")
-                    except:
-                        print("nah dont worry about it")
+                    self.remove_spaces()
                     self.current_event_tag2 = None
                     self.WHITE_PAWN_MOVE[index] = True
             else:
@@ -409,16 +447,7 @@ class movement_of_indivisual_pieces:
     def button_clicked_for_black_pawns(self, event, pawn_item_id, rectangles, attack_thingys):
         index = 0
         self.canvas.move(pawn_item_id, 0, 125)
-        for rec in rectangles:
-            self.canvas.delete(rec)
-        self.spaces_to_move = []
-        for att in attack_thingys:
-            self.canvas.delete(att)
-        self.spaces_to_take = []
-        try:
-            self.canvas.tag_unbind(self.current_event_tag1, '<Button-1>')
-        except:
-            print("Doesnt work its fine dont worry about it")
+        self.remove_spaces()
         self.current_event_tag1 = None
         for x in range(49, 58):
         # if pawn_item_id == 49:
@@ -436,16 +465,7 @@ class movement_of_indivisual_pieces:
         # if pawn_item_id == 49:
         #     if self.BLACK_PAWN_MOVE[0] == False:
                     self.canvas.move(pawn_item_id, 0, 125 * 2)
-                    for rec in rectangles:
-                        self.canvas.delete(rec)
-                    self.spaces_to_move = []
-                    for att in attack_thingys:
-                        self.canvas.delete(att)
-                    self.spaces_to_take = []
-                    try:
-                        self.canvas.tag_unbind(self.current_event_tag2, "<Button-1>")
-                    except:
-                        print("GG")
+                    self.remove_spaces()
                     self.current_event_tag2 = None
                     self.BLACK_PAWN_MOVE[index] = True
             else:
@@ -455,6 +475,8 @@ class movement_of_indivisual_pieces:
 
     def black_rook_movement(self, event, rook_item_id):
         if self.move_count % 2 == 0:
+
+            Flag = True
             
             coords = self.canvas.coords(rook_item_id)
 
@@ -463,11 +485,43 @@ class movement_of_indivisual_pieces:
             current_rook_x = coords[0]
             current_rook_y = coords[1]
 
-            if self.is_something_ahead_for_black_rook(rook_x = current_rook_x, rook_y=current_rook_y):
-                X1, Y1 = current_rook_x - 127 // 2, (current_rook_y - 130 // 2) + self.SIDE_LENGTH
-                X2, Y2 = X1 + self.SIDE_LENGTH, Y1 + self.SIDE_LENGTH
+            forward_rook_y = current_rook_y
+            backward_rook_y = current_rook_y
 
-                self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2)
+            while Flag == True:
+
+                if self.is_something_ahead_for_black_rook(rook_x = current_rook_x, rook_y=forward_rook_y):
+                    X1, Y1 = current_rook_x - 127 // 2, (forward_rook_y - 150 // 2) + self.SIDE_LENGTH
+                    X2, Y2 = X1 + self.SIDE_LENGTH, Y1 + self.SIDE_LENGTH
+
+                    self.spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
+
+                    forward_rook_y = forward_rook_y + self.SIDE_LENGTH
+
+                    if forward_rook_y > 1000:
+                        Flag = False
+                else:
+                    Flag = False
+
+            Flag = True
+
+            while Flag == True:
+
+                if self.is_something_behind_black_rook(rook_x = current_rook_x, rook_y=backward_rook_y):
+                    X1, Y1 = current_rook_x - 127 // 2, (backward_rook_y - 150 // 2) - self.SIDE_LENGTH
+                    X2, Y2 = X1 + self.SIDE_LENGTH, Y1 + self.SIDE_LENGTH
+
+                    self.spaces_to_move.append(self.canvas.create_rectangle(X1, Y1, X2, Y2, fill="orange", width=2))
+
+                    backward_rook_y = backward_rook_y - self.SIDE_LENGTH
+
+                    if backward_rook_y < 0:
+                        Flag = False
+                else:
+                    Flag = False
+
+            for square in self.spaces_to_move:
+                self.canvas.tag_bind(square, "<Button-1>", lambda event, s=square: self.button_clicked_for_black_rooks(event=event, pawn_item_id=rook_item_id, clicked_square_id=s))
 
     def black_pawns_movement(self, event, pawn_item_id):
 
