@@ -29,12 +29,12 @@ class movement_of_indivisual_pieces:
         "wk", "bk",
         )
         self.MOVE_RULES = {
-            "p" : {'vectors': [(0, 1)], "sliding" : False},
-            "r" : {"vectors": [(0,1), (0,-1), (1,0), (-1,0)], "sliding": True},
-            "b" : {"vectors": [(1,1), (1,-1), (-1,1), (-1,-1)], "sliding": True},
-            "h" : {"vectors": [(2,1), (2,-1), (-2,1), (-2,-1), (1,2), (1,-2), (-1,2), (-1,-2)], "sliding": False},
-            "k" : {'vectors': [(1,1), (1,-1), (-1,1), (-1,-1), (0,1), (0,-1), (1,0), (-1,0)], "sliding" : False},
-            "q" : {"vectors": [(0,1), (0,-1), (1,0), (-1,0), (1,1), (1,-1), (-1,1), (-1,-1)], "sliding": True},
+            "p" : {'vectors': [(0, 1)], 'vectors_black': [(0, -1)], "sliding" : False, "black": True},
+            "r" : {"vectors": [(0,1), (0,-1), (1,0), (-1,0)], "sliding": True, "black": False},
+            "b" : {"vectors": [(1,1), (1,-1), (-1,1), (-1,-1)], "sliding": True, "black": False},
+            "h" : {"vectors": [(2,1), (2,-1), (-2,1), (-2,-1), (1,2), (1,-2), (-1,2), (-1,-2)], "sliding": False, "black": False},
+            "k" : {'vectors': [(1,1), (1,-1), (-1,1), (-1,-1), (0,1), (0,-1), (1,0), (-1,0)], "sliding" : False, "black": False},
+            "q" : {"vectors": [(0,1), (0,-1), (1,0), (-1,0), (1,1), (1,-1), (-1,1), (-1,-1)], "sliding": True, "black": False},
         }
 
     def remove_spaces(self):
@@ -57,8 +57,16 @@ class movement_of_indivisual_pieces:
 
             rules = self.MOVE_RULES[ccd[1]]
             
-            for vx, vy in rules["vectors"]:
+            if rules["black"] == True:
+                vector_to_choose = "vectors_black"
+            else:
+                vector_to_choose = "vectors"
+
+            for vx, vy in rules[vector_to_choose]:
                 target_x, target_y = start_x + ((vx * square_size) + (square_size // 2)), start_y + ((vy * square_size) + (square_size // 2))
+                self.canvas.coords(unique_id, target_x, target_y)
+
+            self.move_count += 1
 
         elif self.move_count % 2 != 0 and ccd[0] == 'w':
 
@@ -66,6 +74,9 @@ class movement_of_indivisual_pieces:
             
             for vx, vy in rules["vectors"]:
                 target_x, target_y = start_x + ((vx * square_size) + (square_size // 2)), start_y + ((vy * square_size) + (square_size // 2))
+                self.canvas.coords(unique_id, target_x, target_y)
+            
+            self.move_count += 1
 
     
 
