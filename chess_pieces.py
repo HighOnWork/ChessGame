@@ -1,9 +1,11 @@
 from PIL import Image, ImageTk
 import os
+from movement_of_pieces import movement_of_indivisual_pieces
 
 class ChessPieces:
     def __init__(self, canvas, square_size):
         self.canvas = canvas
+        self.indivisualPieces = movement_of_indivisual_pieces(self.canvas)
         self.square_size = square_size
         self.images = {}
         self.load_assets()
@@ -28,10 +30,19 @@ class ChessPieces:
          pixel_x = (grid_x * self.square_size) + (self.square_size // 2)
          pixel_y = (grid_y * self.square_size) + (self.square_size // 2)
 
-         return self.canvas.create_image(
+         unique_id = self.canvas.create_image(
               pixel_x, pixel_y,
               image=self.images[code],
               tags=(code, "pieces")
          )
+         self.canvas.tag_bind(unique_id, 
+                              "<Button-1>",
+                                lambda event,
+                                item_id = unique_id,
+                                square_size = self.square_size,
+                                collective_id = code: 
+                                self.indivisualPieces.move_pieces(event=event, unique_id=item_id, ccd=collective_id, square_size=square_size)
+        )
+         return unique_id 
     
     

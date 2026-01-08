@@ -20,17 +20,54 @@ class movement_of_indivisual_pieces:
         self.spaces_to_take = []
         self.which_side_can_take = ""
         self.move_count = 1
+        self.pieces = (
+        "wp", "bp",
+        "wr",  "br",
+        "wh",  "bh", 
+        "wb", "bb", 
+        "wq", "bq", 
+        "wk", "bk",
+        )
+        self.MOVE_RULES = {
+            "p" : {'vectors': [(0, 1)], "sliding" : False},
+            "r" : {"vectors": [(0,1), (0,-1), (1,0), (-1,0)], "sliding": True},
+            "b" : {"vectors": [(1,1), (1,-1), (-1,1), (-1,-1)], "sliding": True},
+            "h" : {"vectors": [(2,1), (2,-1), (-2,1), (-2,-1), (1,2), (1,-2), (-1,2), (-1,-2)], "sliding": False},
+            "k" : {'vectors': [(1,1), (1,-1), (-1,1), (-1,-1), (0,1), (0,-1), (1,0), (-1,0)], "sliding" : False},
+            "q" : {"vectors": [(0,1), (0,-1), (1,0), (-1,0), (1,1), (1,-1), (-1,1), (-1,-1)], "sliding": True},
+        }
 
     def remove_spaces(self):
-        if self.spaces_to_take:
-                for space in self.spaces_to_take:
-                    self.canvas.delete(space)
-                self.spaces_to_take.clear()
-        
-        if self.spaces_to_move:
-                for space in self.spaces_to_move:
-                    self.canvas.delete(space)
-                self.spaces_to_move.clear()
+            if self.spaces_to_take:
+                    for space in self.spaces_to_take:
+                        self.canvas.delete(space)
+                    self.spaces_to_take.clear()
+            
+            if self.spaces_to_move:
+                    for space in self.spaces_to_move:
+                        self.canvas.delete(space)
+                    self.spaces_to_move.clear()
+
+    def move_pieces(self, event, unique_id, ccd, square_size):
+        self.remove_spaces()
+        coords = self.canvas.coords(unique_id)
+        start_x = coords[0]
+        start_y = coords[1]
+        if self.move_count % 2 == 0 and ccd[0] == 'b':
+
+            rules = self.MOVE_RULES[ccd[1]]
+            
+            for vx, vy in rules["vectors"]:
+                target_x, target_y = start_x + ((vx * square_size) + (square_size // 2)), start_y + ((vy * square_size) + (square_size // 2))
+
+        elif self.move_count % 2 != 0 and ccd[0] == 'w':
+
+            rules = self.MOVE_RULES[ccd[1]]
+            
+            for vx, vy in rules["vectors"]:
+                target_x, target_y = start_x + ((vx * square_size) + (square_size // 2)), start_y + ((vy * square_size) + (square_size // 2))
+
+    
 
     def button_clicked_for_black_rooks(self, event, pawn_item_id, clicked_square_id):
         target_coords = self.canvas.coords(clicked_square_id)
