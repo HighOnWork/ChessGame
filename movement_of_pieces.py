@@ -7,27 +7,27 @@ class movement_of_indivisual_pieces:
         self.first_turn_done = False
         self.canvas = canvas
         # self.X1, self.Y1 = 0, 250
-        self.SIDE_LENGTH = 125
+        # self.SIDE_LENGTH = 125
         # self.X2, self.Y2 = self.X1 + self.SIDE_LENGTH, self.Y1 + self.SIDE_LENGTH
-        self.y_max = 900
-        self.current_event_tag1 = None
-        self.current_event_tag2 = None
-        self.current_event_tag3 = None
-        self.current_event_tag4 = None
-        self.BLACK_PAWN_MOVE = [False] * 8
-        self.WHITE_PAWN_MOVE = [False] * 8
+        # self.y_max = 900
+        # self.current_event_tag1 = None
+        # self.current_event_tag2 = None
+        # self.current_event_tag3 = None
+        # self.current_event_tag4 = None
+        # self.BLACK_PAWN_MOVE = [False] * 8
+        # self.WHITE_PAWN_MOVE = [False] * 8
         self.spaces_to_move = []
         self.spaces_to_take = []
-        self.which_side_can_take = ""
+        # self.which_side_can_take = ""
         self.move_count = 1
-        self.pieces = (
-        "wp", "bp",
-        "wr",  "br",
-        "wh",  "bh", 
-        "wb", "bb", 
-        "wq", "bq", 
-        "wk", "bk",
-        )
+        # self.pieces = (
+        # "wp", "bp",
+        # "wr",  "br",
+        # "wh",  "bh", 
+        # "wb", "bb", 
+        # "wq", "bq", 
+        # "wk", "bk",
+        # )
         self.MOVE_RULES = {
             "p" : {'vectors': [(0, -1)], 'vectors_black': [(0, 1)], "sliding" : False, "black": True},
             "r" : {"vectors": [(0,1), (0,-1), (1,0), (-1,0)], "sliding": True, "black": False},
