@@ -14,6 +14,8 @@ class movement_of_indivisual_pieces:
         self.lastID = None
         self.destroyPiece = False
         self.Flag = False
+        self.RightFlag = False
+        self.LeftFlag = False
         self.MOVE_RULES = {
             "p" : {'vectors': [(0, -1)], 'vectors_black': [(0, 1)], "sliding" : False, "black": True},
             "r" : {"vectors": [(0,1), (0,-1), (1,0), (-1,0)], "sliding": True, "black": False},
@@ -33,6 +35,24 @@ class movement_of_indivisual_pieces:
                 for space in self.spaces_to_move:
                     self.canvas.delete(space)
                 self.spaces_to_move.clear()
+
+    def piece_to_the_side(self, square_coords, unique_id):
+        #(x1,y1,x2,y2)
+        if_piece_right_side = self.canvas.find_overlapping(square_coords[0] + 125, square_coords[1], square_coords[2] + 125, square_coords[3])
+        if_piece_left_side = self.canvas.find_overlapping(square_coords[0] - 125, square_coords[1], square_coords[2] - 125, square_coords[3])
+        for item in if_piece_right_side:
+            tags = self.canvas.gettags(item)
+            if "pieces" in tags:
+                self.RightFlag = True
+
+        for item in if_piece_left_side:
+            tags = self.canvas.gettags(item)
+            if "pieces" in tags:
+                self.LeftFlag = True
+
+        return None
+
+
 
     def item_destroyed(self, event, square_id, unique_id):
         pass
@@ -78,6 +98,10 @@ class movement_of_indivisual_pieces:
 
         result = self.piece_infront(square_id=square)
 
+        tags = self.canvas.gettags(ID)
+
+        
+
         if result is not None:
             last_piece_id, niche_id = result
         
@@ -85,12 +109,59 @@ class movement_of_indivisual_pieces:
             print(last_piece_id)
             piece_color = last_piece_id[0][0] if last_piece_id and last_piece_id[0] else None
             if piece_color == ccd[0] or ccd[1] == "p":
-                self.canvas.delete(square)
-                if self.spaces_to_move and self.spaces_to_move[-1] == square:
-                    self.spaces_to_move.pop()
+
+                if ccd[1] == "p":
+                    square_coords = self.canvas.coords(square)   
+                    self.piece_to_the_side(square_coords=square_coords, unique_id=ID)
+
+                    self.canvas.delete(square)
+                    if self.spaces_to_move and self.spaces_to_move[-1] == square:
+                        self.spaces_to_move.pop()
+
+                    if self.LeftFlag and self.RightFlag:
+                        square = self.canvas.create_rectangle((x - size // 2) - 125,
+                                                     y - size // 2,
+                                                     (x + size // 2) - 125,
+                                                     y + size // 2,
+                                                     fill="red",
+                                                     stipple="gray50",
+                                                     width=2)
+                        self.spaces_to_move.append(square)
+                        square = self.canvas.create_rectangle((x - size // 2) + 125,
+                                                     y - size // 2,
+                                                     (x + size // 2) + 125,
+                                                     y + size // 2,
+                                                     fill="red",
+                                                     stipple="gray50",
+                                                     width=2)
+                        self.spaces_to_move.append(square)
+
+                    elif self.LeftFlag:
+                       square = self.canvas.create_rectangle((x - size // 2) - 125,
+                                                     y - size // 2,
+                                                     (x + size // 2) - 125,
+                                                     y + size // 2,
+                                                     fill="red",
+                                                     stipple="gray50",
+                                                     width=2)
+                       self.spaces_to_move.append(square)
+                    elif self.RightFlag:
+                        square = self.canvas.create_rectangle((x - size // 2) + 125,
+                                                     y - size // 2,
+                                                     (x + size // 2) + 125,
+                                                     y + size // 2,
+                                                     fill="red",
+                                                     stipple="gray50",
+                                                     width=2)
+                        self.spaces_to_move.append(square)
+                    
+
+                
             elif piece_color != ccd[0]:
                 self.canvas.itemconfig(square, fill="red")
                 self.canvas.tag_bind(square, "<Button-1>", lambda event, s=square, id=ID: self.button_clicked(event, s, id, special_flag = True, lpi=niche_id))
+
+        
 
     def move_pieces(self, event, unique_id, ccd, square_size):
         i = 1
@@ -133,8 +204,3 @@ class movement_of_indivisual_pieces:
                     if self.Flag and ccd[1] != 'p':
                         break
                     
-                    
-                    
-                    
-
-            
