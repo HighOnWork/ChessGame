@@ -36,21 +36,39 @@ class movement_of_indivisual_pieces:
                     self.canvas.delete(space)
                 self.spaces_to_move.clear()
 
-    def piece_to_the_side(self, square_coords, unique_id):
-        #(x1,y1,x2,y2)
-        if_piece_right_side = self.canvas.find_overlapping(square_coords[0] + 125, square_coords[1], square_coords[2] + 125, square_coords[3])
-        if_piece_left_side = self.canvas.find_overlapping(square_coords[0] - 125, square_coords[1], square_coords[2] - 125, square_coords[3])
-        for item in if_piece_right_side:
-            tags = self.canvas.gettags(item)
-            if "pieces" in tags:
-                self.RightFlag = True
+    def piece_to_the_side(self, x, y, size, unique_id, ccd):
+        """ Checks for enemies diagonally in front of the pawn """
+        # Calculate diagonal coordinates based on color
+        direction = -1 if ccd[0] == 'w' else 1
+        
+        # Diagonal offsets: (Left-Diagonal, Right-Diagonal)
+        diagonals = [
+            (x - size, y + (direction * size)), # Left
+            (x + size, y + (direction * size))  # Right
+        ]
+        for dx, dy in diagonals:
+    # Only check if the coordinates are actually on the 8x8 board
+            if 0 < dx < (size * 8) and 0 < dy < (size * 8):
+                overlapping = self.canvas.find_overlapping(dx - 5, dy - 5, dx + 5, dy + 5)
+                for item in overlapping:
+                    tags = self.canvas.gettags(item)
+                    if "pieces" in tags:
+                        # Check if it's an enemy
+                        if (ccd[0] == 'w' and 'bp' in tags) or (ccd[0] == 'b' and 'wp' in tags):
+                            self.draw_capture_indicator(dx, dy, size, unique_id, item)
 
-        for item in if_piece_left_side:
-            tags = self.canvas.gettags(item)
-            if "pieces" in tags:
-                self.LeftFlag = True
-
-        return None
+    def draw_capture_indicator(self, x, y, size, ID, target_piece_id):
+        """ Creates the red square for captures and binds the click event """
+        square = self.canvas.create_rectangle(
+            x - size // 2, y - size // 2,
+            x + size // 2, y + size // 2,
+            fill="red", stipple="gray50", width=2
+        )
+        self.spaces_to_move.append(square)
+        # Crucial: Bind the click to destroy the enemy piece
+        self.canvas.tag_bind(square, "<Button-1>", 
+            lambda event, s=square, id=ID, target=target_piece_id: 
+            self.button_clicked(event, s, id, special_flag=True, lpi=target))
 
 
 
@@ -83,6 +101,9 @@ class movement_of_indivisual_pieces:
         self.remove_spaces()
 
     def draw_indicator(self, x, y, size, ID, ccd):
+        self.Flag = False
+        self.RightFlag = False
+        self.LeftFlag = False
         last_piece_id = None
         niche_id = None
 
@@ -100,6 +121,8 @@ class movement_of_indivisual_pieces:
 
         tags = self.canvas.gettags(ID)
 
+        orig_index = self.spaces_to_move.index(square)
+        item = self.spaces_to_move[orig_index]
         
 
         if result is not None:
@@ -107,100 +130,61 @@ class movement_of_indivisual_pieces:
         
         if last_piece_id is not None:
             print(last_piece_id)
+
             piece_color = last_piece_id[0][0] if last_piece_id and last_piece_id[0] else None
             if piece_color == ccd[0] or ccd[1] == "p":
 
-                if ccd[1] == "p":
-                    square_coords = self.canvas.coords(square)   
-                    self.piece_to_the_side(square_coords=square_coords, unique_id=ID)
-
-                    self.canvas.delete(square)
-                    if self.spaces_to_move and self.spaces_to_move[-1] == square:
-                        self.spaces_to_move.pop()
-
-                    if self.LeftFlag and self.RightFlag:
-                        square = self.canvas.create_rectangle((x - size // 2) - 125,
-                                                     y - size // 2,
-                                                     (x + size // 2) - 125,
-                                                     y + size // 2,
-                                                     fill="red",
-                                                     stipple="gray50",
-                                                     width=2)
-                        self.spaces_to_move.append(square)
-                        square = self.canvas.create_rectangle((x - size // 2) + 125,
-                                                     y - size // 2,
-                                                     (x + size // 2) + 125,
-                                                     y + size // 2,
-                                                     fill="red",
-                                                     stipple="gray50",
-                                                     width=2)
-                        self.spaces_to_move.append(square)
-
-                    elif self.LeftFlag:
-                       square = self.canvas.create_rectangle((x - size // 2) - 125,
-                                                     y - size // 2,
-                                                     (x + size // 2) - 125,
-                                                     y + size // 2,
-                                                     fill="red",
-                                                     stipple="gray50",
-                                                     width=2)
-                       self.spaces_to_move.append(square)
-                    elif self.RightFlag:
-                        square = self.canvas.create_rectangle((x - size // 2) + 125,
-                                                     y - size // 2,
-                                                     (x + size // 2) + 125,
-                                                     y + size // 2,
-                                                     fill="red",
-                                                     stipple="gray50",
-                                                     width=2)
-                        self.spaces_to_move.append(square)
-                    
-
-                
+                self.spaces_to_move.pop(orig_index)
+                self.canvas.delete(item)
+ 
             elif piece_color != ccd[0]:
                 self.canvas.itemconfig(square, fill="red")
-                self.canvas.tag_bind(square, "<Button-1>", lambda event, s=square, id=ID: self.button_clicked(event, s, id, special_flag = True, lpi=niche_id))
+                self.canvas.tag_bind(item, "<Button-1>", lambda event, s=square, id=ID: self.button_clicked(event, s, id, special_flag = True, lpi=niche_id))
 
         
 
     def move_pieces(self, event, unique_id, ccd, square_size):
-        i = 1
         self.remove_spaces()
         coords = self.canvas.coords(unique_id)
-        start_x = coords[0]
-        start_y = coords[1]
-
+        start_x, start_y = coords[0], coords[1]
         is_white = ccd[0] == 'w'
 
+        # 1. HANDLE PAWN CAPTURES (Diagonal)
+        if ccd[1] == 'p':
+            self.piece_to_the_side(start_x, start_y, square_size, unique_id, ccd)
+
+        # 2. HANDLE STANDARD MOVEMENT (Forward/Vectors)
         if (self.move_count % 2 == 0 and not is_white) or (self.move_count % 2 != 0 and is_white):
             rules = self.MOVE_RULES[ccd[1]]
-
             key = "vectors_black" if (not is_white and rules.get("black")) else "vectors"
 
             for vx, vy in rules[key]:
-                self.Flag = False
-                cur_x = start_x
-                cur_y = start_y
+                cur_x, cur_y = start_x, start_y
+                
+                # For pawns, we only check 1 or 2 squares forward
+                max_steps = 1
+                if ccd[1] == 'p' and "unmoved" in self.canvas.gettags(unique_id):
+                    max_steps = 2
+                
+                # For sliding pieces (Rook/Queen), use a high number
+                if rules.get("sliding"): max_steps = 8
 
-                while True:
+                for step in range(max_steps):
                     cur_x += (vx * square_size)
                     cur_y += (vy * square_size)
-                    if not (0 < cur_x < 1000 and 0 < cur_y < 1000):
-                        break
-                   
-                    self.draw_indicator(cur_x, cur_y, square_size, unique_id, ccd)
+                    
+                    if not (0 < cur_x < 1000 and 0 < cur_y < 1000): break
 
-                    if ccd[1] == 'p':
-                        tags = self.canvas.gettags(unique_id)
-                        if ("unmoved" in tags) and i > 0:
-                            i -= 1
-                            continue
-                        else:
-                            break
-                       
+                    # Pawns cannot move forward if blocked (Flag logic)
+                    self.Flag = False
+                    self.draw_indicator(cur_x, cur_y, square_size, unique_id, ccd)
+                    
+                    if self.Flag: # If square is blocked
+                        # If it's a pawn moving forward, delete the orange indicator (can't jump)
+                        if ccd[1] == 'p':
+                            item = self.spaces_to_move.pop()
+                            self.canvas.delete(item)
+                        break 
+                    
                     if not rules.get("sliding") and ccd[1] != 'p':
                         break
-
-                    if self.Flag and ccd[1] != 'p':
-                        break
-                    
