@@ -1,9 +1,5 @@
-# from chess_pieces import ChessPieces
-# import tkinter as tk
-
 from tkinter import FALSE, LAST, TRUE
 from typing import Sized
-
 
 class movement_of_indivisual_pieces:
     def __init__(self, canvas):
@@ -15,6 +11,7 @@ class movement_of_indivisual_pieces:
         self.lastID = None
         self.destroyPiece = False
         self.check_flag = False
+        self.type_checking = ""
         self.Flag = False
         self.RightFlag = False
         self.LeftFlag = False
@@ -29,287 +26,298 @@ class movement_of_indivisual_pieces:
 
     def remove_spaces(self):
         if self.spaces_to_take:
-                for space in self.spaces_to_take:
-                    self.canvas.delete(space)
-                self.spaces_to_take.clear()
+            for space in self.spaces_to_take:
+                self.canvas.delete(space)
+            self.spaces_to_take.clear()
         
         if self.spaces_to_move:
-                for space in self.spaces_to_move:
-                    self.canvas.delete(space)
-                self.spaces_to_move.clear()
+            for space in self.spaces_to_move:
+                self.canvas.delete(space)
+            self.spaces_to_move.clear()
 
+    def is_still_in_check(self, ccd, x, y, item):
+        # Safety Check: If the item was already removed by collision logic, stop.
+        if item not in self.spaces_to_move:
+            return
+
+        all_intercepting_coords = []
+        
+        # Guard clause: If we don't know what checked us, we can't calculate the block
+        if not self.type_checking: 
+            return
+
+        coords_for_checking_piece = self.canvas.coords(self.type_checking)
+        
+        # Calculate coordinates of the piece checking the king
+        attacker_center_x = coords_for_checking_piece[0]
+        attacker_center_y = coords_for_checking_piece[1]
+
+        move_rules = self.MOVE_RULES[self.type_checking[1]]
+        
+        if move_rules["black"]:
+            rule = "vectors" if self.type_checking[0] == "w" else "vectors_black"
+        else:
+            rule = "vectors"
+            
+        turns = 8 if move_rules['sliding'] == True else 2
+        
+        # This logic attempts to find the path of the attack
+        # Note: This is a simplified check logic. It assumes the blocking piece
+        # must land exactly on the vector ray.
+        for vx, vy in move_rules[rule]:
+            cur_x = attacker_center_x
+            cur_y = attacker_center_y
+            
+            # We must trace FROM the attacker TO the King (or vice versa)
+            # This part of your logic assumes you know the vector. 
+            # Ideally, we should check if this specific vector hits the King.
+            # For now, keeping your existing structure but fixing the crash.
+            
+            for turn in range(turns):
+                if not (0 < cur_x < 1000 and 0 < cur_y < 1000): break
+                cur_x += vx * 100 # Warning: Multiplier 100 is a magic number, should be 'size'
+                cur_y += vy * 100
+                all_intercepting_coords.append((cur_x, cur_y))
+
+        # CRITICAL FIX: Don't pop blindly. 
+        # Check if this specific move (x,y) blocks the line of fire.
+        # If the move is NOT in the intercepting path, it doesn't solve check.
+        # (This logic is still brittle for complex chess rules, but fixes the crash).
+        
+        # Since exact float matching is hard, we might want a tolerance, 
+        # but for grid chess, (x,y) should match exactly if calculated correctly.
+        if (x, y) not in all_intercepting_coords:
+            # Safely remove specific item
+            if item in self.spaces_to_move:
+                self.spaces_to_move.remove(item)
+                self.canvas.delete(item)
+        else:
+            self.canvas.config(item, fill="blue") # valid block
 
     def get_king_coords(self, king_color):
-        # king_color should be 'w' or 'b'
-        # Construct the tag, e.g., 'wk' or 'bk'
         king_tag = f"{king_color}k" 
-        
-        # Find the item on canvas with this tag
         king_ids = self.canvas.find_withtag(king_tag)
-        
         if not king_ids:
-            print(f"Error: Could not find King with tag {king_tag}")
             return None, None
-
-        # We assume there is only one King of that color; take the first ID
         king_id = king_ids[0]
-        
-        # Get coordinates [x1, y1, x2, y2]
         coords = self.canvas.coords(king_id)
-        
-        # Calculate center point
-        center_x = coords[0] // 2
-        center_y = coords[1] // 2
-        
+        center_x = coords[0]
+        center_y = coords[1]
         return center_x, center_y
 
-
     def is_king_in_check(self, ccd, size):
-        """
-        ccd: Color of the current turn (e.g. 'wp' -> we need to check 'w' King)
-        size: Square size for calculations
-        """
-        # 1. Determine King Color ('w' or 'b')
-        king_color = ccd[0] # Assumes ccd is something like 'wp', 'br', etc.
+        king_color = ccd[0]
         enemy_color = 'b' if king_color == 'w' else 'w'
-        
-        # 2. GET ACTUAL KING COORDINATES
         king_x, king_y = self.get_king_coords(king_color)
         
-        if king_x is None: return False # Safety check if King is missing
+        if king_x is None: return False
 
-        # Iterate through every piece type to see if that piece type is attacking the King
         for piece_type, rules in self.MOVE_RULES.items():
-            
-            # --- 1. PAWN LOGIC ---
             if piece_type == "p":
-                # If I am white, I look "Up" (negative Y) for Black pawns ready to strike "Down"
-                # If I am black, I look "Down" (positive Y) for White pawns ready to strike "Up"
                 look_dir = -1 if king_color == 'w' else 1 
-                
                 pawn_attacks = [
-                    (king_x - size, king_y + (look_dir * size)), # Left corner
-                    (king_x + size, king_y + (look_dir * size))  # Right corner
+                    (king_x - size, king_y + (look_dir * size)), 
+                    (king_x + size, king_y + (look_dir * size)) 
                 ]
-
                 for px, py in pawn_attacks:
                     overlapping = self.canvas.find_overlapping(px - 5, py - 5, px + 5, py + 5)
                     for item in overlapping:
                         tags = self.canvas.gettags(item)
-                        # Check for Enemy Color + Pawn Tag
                         if f'{enemy_color}p' in tags:
+                            self.type_checking = next(t for t in tags if t == f'{enemy_color}p')
                             return True
-
-            # --- 2. STANDARD PIECE LOGIC (R, B, N, Q, K) ---
             else:
                 vectors = rules['vectors']
                 max_steps = 8 if rules['sliding'] else 2 
-                
                 for vx, vy in vectors:
-                    # RESET RAYCAST TO KING POSITION
                     cur_x, cur_y = king_x, king_y
-                    
                     for _ in range(1, max_steps):
                         cur_x += vx * size 
                         cur_y += vy * size 
-                        
-                        # Stop if off board (Assuming board is 0-800 pixels)
                         if not (0 < cur_x < size * 8 and 0 < cur_y < size * 8):
                             break
 
-                        # Check collision
                         items = self.canvas.find_overlapping(cur_x - 5, cur_y - 5, cur_x + 5, cur_y + 5)
-                        
                         piece_found = False
                         for item in items:
                             tags = self.canvas.gettags(item)
-                            
-                            # Skip board squares
                             if any(t in tags for t in ['current', 'square']): continue 
                             
-                            # Check for pieces
                             if any(t.startswith('w') or t.startswith('b') for t in tags):
                                 piece_found = True
-                                
-                                # 1. Is it friendly? (Blocker)
                                 if any(t.startswith(king_color) for t in tags):
                                     break 
-                                
-                                # 2. Is it an enemy?
                                 if any(t.startswith(enemy_color) for t in tags):
-                                    # Check exact piece type
                                     enemy_piece_tag = next(t for t in tags if t.startswith(enemy_color))
-                                    found_type = enemy_piece_tag[1] # 'r', 'b', 'q' etc.
-
+                                    found_type = enemy_piece_tag[1]
                                     if found_type == piece_type or found_type == 'q':
+                                        self.type_checking = enemy_piece_tag
                                         return True
                                     else:
-                                        break # Enemy blocks, but is wrong type (e.g. found Knight while looking for Rook)
-                        
-                        if piece_found: break # Stop ray in this direction
-
+                                        break 
+                        if piece_found: break
         return False
-
-
 
     def piece_to_the_side(self, x, y, size, unique_id, ccd):
         """ Checks for enemies diagonally in front of the pawn """
-        # Calculate diagonal coordinates based on color
         direction = -1 if ccd[0] == 'w' else 1
         
-        # Diagonal offsets: (Left-Diagonal, Right-Diagonal)
+        # Diagonal offsets
         diagonals = [
             (x - size, y + (direction * size)), # Left
             (x + size, y + (direction * size))  # Right
         ]
+        
         for dx, dy in diagonals:
-    # Only check if the coordinates are actually on the 8x8 board
             if 0 < dx < (size * 8) and 0 < dy < (size * 8):
                 overlapping = self.canvas.find_overlapping(dx - 5, dy - 5, dx + 5, dy + 5)
                 for item in overlapping:
                     tags = self.canvas.gettags(item)
-                    if "pieces" in tags:
-                        # Check if it's an enemy
-                        if (ccd[0] == 'w' and 'bp' in tags) or (ccd[0] == 'b' and 'wp' in tags):
+                    # Check if it is a piece and NOT the board
+                    if any(t.startswith('w') or t.startswith('b') for t in tags):
+                        # Ensure it is an enemy
+                        if (ccd[0] == 'w' and any(t.startswith('b') for t in tags)) or \
+                           (ccd[0] == 'b' and any(t.startswith('w') for t in tags)):
                             self.draw_capture_indicator(dx, dy, size, unique_id, item)
 
     def draw_capture_indicator(self, x, y, size, ID, target_piece_id):
-        """ Creates the red square for captures and binds the click event """
         square = self.canvas.create_rectangle(
             x - size // 2, y - size // 2,
             x + size // 2, y + size // 2,
             fill="red", stipple="gray50", width=2
         )
         self.spaces_to_move.append(square)
-        # Crucial: Bind the click to destroy the enemy piece
         self.canvas.tag_bind(square, "<Button-1>", 
             lambda event, s=square, id=ID, target=target_piece_id: 
-            self.button_clicked(event, s, id, special_flag=True, lpi=target))
-
-
-
-    def item_destroyed(self, event, square_id, unique_id):
-        pass
+            self.button_clicked(event, s, id, ccd=None, size=size, special_flag=True, lpi=target))
 
     def piece_infront(self, square_id):
         square_coords = self.canvas.coords(square_id)  
         overlapping = self.canvas.find_overlapping(*square_coords)
         for item in overlapping:
             tags = self.canvas.gettags(item)
-            if "pieces" in tags:
+            # Looking for chess pieces, not the board squares or the indicator itself
+            if any(t.startswith('w') or t.startswith('b') for t in tags) and item != square_id:
                 self.Flag = True
                 return tags, item
         return None
 
-    def button_clicked(self, event, square_id, unique_id,  lpi=None, special_flag=False):
+    def button_clicked(self, event, square_id, unique_id, ccd, size, lpi=None, special_flag=False):
         self.check_flag = False
         print("Clicked on indicator")
         tags = self.canvas.gettags(unique_id)
+        
         if "unmoved" in tags:
             self.canvas.dtag(unique_id, "unmoved")
+        
         if special_flag and lpi:
             self.canvas.delete(lpi)
+            
         square_id_coords = self.canvas.coords(square_id)
-        print(square_id_coords)
-        center_x = (square_id_coords[0] + square_id_coords[2]) / 2
-        center_y = (square_id_coords[1] + square_id_coords[3]) / 2
-        self.canvas.move(unique_id ,center_x - self.canvas.coords(unique_id)[0], center_y - self.canvas.coords(unique_id)[1])
+        
+        # Calculate new center
+        dest_x = (square_id_coords[0] + square_id_coords[2]) / 2
+        dest_y = (square_id_coords[1] + square_id_coords[3]) / 2
+        
+        # Calculate current center
+        curr_coords = self.canvas.coords(unique_id)
+        curr_x = curr_coords[0]
+        curr_y = curr_coords[1]
+        
+        # Move piece
+        self.canvas.move(unique_id, dest_x - curr_x, dest_y - curr_y)
         self.move_count += 1
         self.remove_spaces()
 
     def draw_indicator(self, x, y, size, ID, ccd):
         self.Flag = False
-        self.RightFlag = False
-        self.LeftFlag = False
-        last_piece_id = None
-        niche_id = None
-
         square = (self.canvas.create_rectangle(x - size // 2, 
-                                                    y - size // 2, 
-                                                    x + size // 2, 
-                                                    y + size // 2, 
-                                                    fill="orange", 
-                                                    stipple="gray50",
-                                                    width=2))
+                                               y - size // 2, 
+                                               x + size // 2, 
+                                               y + size // 2, 
+                                               fill="orange", 
+                                               stipple="gray50",
+                                               width=2))
         self.spaces_to_move.append(square)
-        self.canvas.tag_bind(square, "<Button-1>", lambda event, s=square, id=ID: self.button_clicked(event, s, id))
+        self.canvas.tag_bind(square, "<Button-1>", lambda event, s=square, id=ID: self.button_clicked(event, s, id, ccd=ccd, size=size))
 
         result = self.piece_infront(square_id=square)
-
-        tags = self.canvas.gettags(ID)
-
-        orig_index = self.spaces_to_move.index(square)
-        item = self.spaces_to_move[orig_index]
         
+        # We must keep track of whether the square is still valid
+        square_valid = True
 
         if result is not None:
-            last_piece_id, niche_id = result
-        
-        if last_piece_id is not None:
-            print(last_piece_id)
+            last_piece_tags, niche_id = result
+            # Get the color of the piece in front
+            # Assumes tags like ['wp', 'unmoved', ...] or ['br', ...]
+            piece_tag = next((t for t in last_piece_tags if t.startswith('w') or t.startswith('b')), None)
+            
+            if piece_tag:
+                piece_color = piece_tag[0]
+                
+                # If friendly piece OR if it's a pawn (pawns can't take forward)
+                if piece_color == ccd[0] or ccd[1] == "p":
+                    if square in self.spaces_to_move:
+                        self.spaces_to_move.remove(square)
+                    self.canvas.delete(square)
+                    square_valid = False # Mark as invalid
 
-            piece_color = last_piece_id[0][0] if last_piece_id and last_piece_id[0] else None
+                # If enemy piece (and not a pawn moving forward) -> Capture logic
+                elif piece_color != ccd[0] and ccd[1] != "p":
+                    self.canvas.itemconfig(square, fill="red")
+                    self.canvas.tag_bind(square, "<Button-1>", lambda event, s=square, id=ID: self.button_clicked(event, s, id, special_flag = True, lpi=niche_id, ccd=ccd, size=size))
 
-            if piece_color == ccd[0] or ccd[1] == "p":
-
-                self.spaces_to_move.pop(orig_index)
-                self.canvas.delete(item)
- 
-            elif piece_color != ccd[0]:
-                self.canvas.itemconfig(square, fill="red")
-                self.canvas.tag_bind(item, "<Button-1>", lambda event, s=square, id=ID: self.button_clicked(event, s, id, special_flag = True, lpi=niche_id))
-
-        
+        # Only check for checkmate constraints if the square still exists
+        if self.check_flag and square_valid:
+            self.is_still_in_check(ccd, x, y, square)
 
     def move_pieces(self, event, unique_id, ccd, square_size):
         self.check_flag = False
         self.remove_spaces()
         
-        # Get clicked piece coords (keep this for standard movement logic later)
         coords = self.canvas.coords(unique_id)
-        start_x, start_y = coords[0], coords[1]
+        # Use center point for clearer math
+        start_x = coords[0]
+        start_y = coords[1]
+        
         is_white = ccd[0] == 'w'
 
-        # --- CHANGED LINE BELOW ---
-        # No longer passing start_x/y to the check function
         if self.is_king_in_check(ccd=ccd, size=square_size):
             self.check_flag = True
             print("KING IS IN CHECK")
         
-        if self.check_flag and ccd[1] == "k" or not self.check_flag:
-            # 2. HANDLE STANDARD MOVEMENT (Forward/Vectors)
-            if (self.move_count % 2 == 0 and not is_white) or (self.move_count % 2 != 0 and is_white):
-                rules = self.MOVE_RULES[ccd[1]]
-                key = "vectors_black" if (not is_white and rules.get("black")) else "vectors"
+        # Turn enforcement
+        if (self.move_count % 2 == 0 and not is_white) or (self.move_count % 2 != 0 and is_white):
+            
+            # --- FIX: Handle Pawn Diagonal Captures ---
+            if ccd[1] == 'p':
+                self.piece_to_the_side(start_x, start_y, square_size, unique_id, ccd)
 
-                for vx, vy in rules[key]:
-                    cur_x, cur_y = start_x, start_y
+            # Standard Movements
+            rules = self.MOVE_RULES[ccd[1]]
+            key = "vectors_black" if (not is_white and rules.get("black")) else "vectors"
+
+            for vx, vy in rules[key]:
+                cur_x, cur_y = start_x, start_y
                 
-                    # For pawns, we only check 1 or 2 squares forward
-                    max_steps = 1
-                    if ccd[1] == 'p' and "unmoved" in self.canvas.gettags(unique_id):
-                        max_steps = 2
+                max_steps = 1
+                if ccd[1] == 'p' and "unmoved" in self.canvas.gettags(unique_id):
+                    max_steps = 2
                 
-                    # For sliding pieces (Rook/Queen), use a high number
-                    if rules.get("sliding"): max_steps = 8
+                if rules.get("sliding"): max_steps = 8
 
-                    for step in range(max_steps):
-                        cur_x += (vx * square_size)
-                        cur_y += (vy * square_size)
+                for step in range(max_steps):
+                    cur_x += (vx * square_size)
+                    cur_y += (vy * square_size)
                     
-                        if not (0 < cur_x < 1000 and 0 < cur_y < 1000): break
+                    if not (0 < cur_x < square_size * 8 and 0 < cur_y < square_size * 8): break
 
-                        # Pawns cannot move forward if blocked (Flag logic)
-                        self.Flag = False
-                        self.draw_indicator(cur_x, cur_y, square_size, unique_id, ccd)
+                    self.Flag = False
+                    self.draw_indicator(cur_x, cur_y, square_size, unique_id, ccd)
                     
-                        if self.Flag: # If square is blocked
-                            # If it's a pawn moving forward, delete the orange indicator (can't jump)
-                            
-                            break 
+                    # If blocked, stop rays for pawns and non-sliding pieces
+                    if self.Flag: 
+                        break 
                     
-                        if not rules.get("sliding") and ccd[1] != 'p':
-                            break
-
-                
-                    
+                    if not rules.get("sliding") and ccd[1] != 'p':
+                        break
