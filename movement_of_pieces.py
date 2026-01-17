@@ -1,9 +1,10 @@
-from tkinter import FALSE, LAST, TRUE
+from tkinter import FALSE, LAST, TRUE, messagebox
 from typing import Sized
 
 class movement_of_indivisual_pieces:
     def __init__(self, canvas):
         self.first_turn_done = False
+
         self.canvas = canvas
         self.spaces_to_move = []
         self.spaces_to_take = []
@@ -12,7 +13,9 @@ class movement_of_indivisual_pieces:
         self.destroyPiece = False
         self.check_flag = False
         self.type_checking = ""
+        self.type_checking_ccd = ""
         self.Flag = False
+        self.all_intercepting_coords = []
         self.RightFlag = False
         self.LeftFlag = False
         self.MOVE_RULES = {
@@ -35,12 +38,120 @@ class movement_of_indivisual_pieces:
                 self.canvas.delete(space)
             self.spaces_to_move.clear()
 
+    def show_game_over(self, winner):
+        messagebox.showinfo("Game over", f"CHECKMATE! {winner} wins the match.")
+        self.canvas.master.destroy()
+
+    def get_potential_moves(self, piece_id, piece_tag, size):
+        """Calculates all squares a piece can move to (ignoring check for now)."""
+        moves = []
+        coords = self.canvas.coords(piece_id)
+        start_x, start_y = coords[0], coords[1]
+    
+        p_type = piece_tag[1]
+        p_color = piece_tag[0]
+        rules = self.MOVE_RULES[p_type]
+    
+        # Handle Pawn differently (they have unique move vs capture rules)
+        if p_type == 'p':
+            dir = -1 if p_color == 'w' else 1
+            # Forward moves
+            for step in [1, 2] if "unmoved" in self.canvas.gettags(piece_id) else [1]:
+                tx, ty = start_x, start_y + (dir * size * step)
+                if self.get_piece_at(tx, ty, piece_id): break # Blocked
+                moves.append((tx, ty))
+            # Diagonal captures
+            for dx in [-size, size]:
+                tx, ty = start_x + dx, start_y + (dir * size)
+                target = self.get_piece_at(tx, ty, piece_id)
+                if target and not self.canvas.gettags(target)[0].startswith(p_color):
+                    moves.append((tx, ty))
+        else:
+            # Sliding and Jumping pieces
+            vectors = rules['vectors']
+            max_steps = 8 if rules['sliding'] else 2
+            for vx, vy in vectors:
+                for step in range(1, max_steps):
+                    tx, ty = start_x + (vx * size * step), start_y + (vy * size * step)
+                    if not (0 < tx < size * 8 and 0 < ty < size * 8): break
+                
+                    target = self.get_piece_at(tx, ty, piece_id)
+                    if target:
+                        if not self.canvas.gettags(target)[0].startswith(p_color):
+                            moves.append((tx, ty)) # Can capture
+                        break # Blocked regardless of color
+                    moves.append((tx, ty))
+        return moves
+
+    def checkmate(self, ccd, size):
+        """Checks if the player whose turn it just became is in checkmate."""
+        # The opponent is the one who might be mated
+        current_color = 'b' if ccd[0] == 'w' else 'w'
+    
+        # 1. If the king isn't even in check, it can't be checkmate
+        if not self.is_king_in_check([current_color, 'k'], size):
+            return False
+
+        # 2. Try EVERY move for EVERY piece of the current_color
+        all_pieces = self.canvas.find_withtag("pieces")
+        for piece in all_pieces:
+            tags = self.canvas.gettags(piece)
+            if not tags[0].startswith(current_color):
+                continue
+            
+            # Get all squares this piece could theoretically move to
+            potential_moves = self.get_potential_moves(piece, tags[0], size)
+        
+            for move_x, move_y in potential_moves:
+                # Simulation: Temporarily move the piece
+                orig_coords = self.canvas.coords(piece)
+            
+                # Check for a piece to "capture" at the destination
+                target = self.get_piece_at(move_x, move_y, piece)
+                target_state = None
+                if target:
+                    target_state = self.canvas.itemcget(target, 'state')
+                    self.canvas.itemconfig(target, state='hidden')
+            
+                # Move the piece
+                self.canvas.coords(piece, move_x, move_y)
+            
+                # Is the king STILL in check after this move?
+                still_in_check = self.is_king_in_check([current_color, 'k'], size)
+            
+                # Undo simulation
+                self.canvas.coords(piece, orig_coords[0], orig_coords[1])
+                if target:
+                    self.canvas.itemconfig(target, state=target_state)
+            
+                # If we found even ONE move that saves the king, it's not mate
+                if not still_in_check:
+                    return False
+
+        # If no piece had a move that escaped check:
+        winner = "White" if ccd[0] == 'w' else "Black"
+        print(f"CHECKMATE! {winner} wins!")
+        winner = "White" if ccd[0] == 'w' else "Black"
+    
+        # Trigger the Popup
+        self.show_game_over(winner)
+        return True
+
+    def get_piece_at(self, x, y, exclude_id):
+        """Helper to find if a piece exists at specific coordinates."""
+        items = self.canvas.find_overlapping(x-2, y-2, x+2, y+2)
+        for item in items:
+            tags = self.canvas.gettags(item)
+            if any(t.startswith('w') or t.startswith('b') for t in tags) and item != exclude_id:
+                return item
+        return None
+
     def is_still_in_check(self, ccd, x, y, item, size):
         # Safety Check: If the item was already removed by collision logic, stop.
         if item not in self.spaces_to_move:
             return
 
-        all_intercepting_coords = []
+        
         
         # Guard clause: If we don't know what checked us, we can't calculate the block
         if not self.type_checking: 
@@ -56,7 +167,7 @@ class movement_of_indivisual_pieces:
         if king_x is None: return
         king_x, king_y = int(king_x), int(king_y)
 
-        move_rules = self.MOVE_RULES[self.type_checking[1]]
+        move_rules = self.MOVE_RULES[self.type_checking_ccd[1]]
         
         if move_rules["black"]:
             rule = "vectors" if self.type_checking[0] == "w" else "vectors_black"
@@ -81,11 +192,14 @@ class movement_of_indivisual_pieces:
                 current_ray.append((cur_x, cur_y))
 
                 if (king_x, king_y) in current_ray:
-                    all_intercepting_coords.extend(current_ray)
+                    self.all_intercepting_coords.extend(current_ray)
         
-        if (int(x), int(y)) not in all_intercepting_coords:
+        if (int(x), int(y)) not in self.all_intercepting_coords:
             # Safely remove specific item
             if item in self.spaces_to_move:
+                if self.checkmate(ccd, size):
+                    winner = "White" if ccd[0] == "b" else "Black"
+                    print(f"{winner} wins")
                 self.spaces_to_move.remove(item)
                 self.canvas.delete(item)
         else:
@@ -121,7 +235,8 @@ class movement_of_indivisual_pieces:
                     for item in overlapping:
                         tags = self.canvas.gettags(item)
                         if f'{enemy_color}p' in tags:
-                            self.type_checking = next(t for t in tags if t == f'{enemy_color}p')
+                            self.type_checking = item
+                            self.type_checking_ccd = next(t for t in tags if t == f'{enemy_color}p')
                             return True
             else:
                 vectors = rules['vectors']
@@ -148,7 +263,8 @@ class movement_of_indivisual_pieces:
                                     enemy_piece_tag = next(t for t in tags if t.startswith(enemy_color))
                                     found_type = enemy_piece_tag[1]
                                     if found_type == piece_type or found_type == 'q':
-                                        self.type_checking = enemy_piece_tag
+                                        self.type_checking = item
+                                        self.type_checking_ccd = enemy_piece_tag
                                         return True
                                     else:
                                         break 
@@ -201,33 +317,45 @@ class movement_of_indivisual_pieces:
 
     def button_clicked(self, event, square_id, unique_id, ccd, size, lpi=None, special_flag=False):
         self.check_flag = False
-        print("Clicked on indicator")
         tags = self.canvas.gettags(unique_id)
-        
-        if "unmoved" in tags:
-            self.canvas.dtag(unique_id, "unmoved")
-        
-        if special_flag and lpi:
-            self.canvas.delete(lpi)
-            
+    
+        # Store original position in case we need to roll back
+        curr_coords = self.canvas.coords(unique_id)
+        curr_x, curr_y = curr_coords[0], curr_coords[1]
+    
         square_id_coords = self.canvas.coords(square_id)
-        
-        # Calculate new center
         dest_x = (square_id_coords[0] + square_id_coords[2]) / 2
         dest_y = (square_id_coords[1] + square_id_coords[3]) / 2
-        
-        # Calculate current center
-        curr_coords = self.canvas.coords(unique_id)
-        curr_x = curr_coords[0]
-        curr_y = curr_coords[1]
-        
-        # Move piece
+
+        # 1. Temporarily move the piece
         self.canvas.move(unique_id, dest_x - curr_x, dest_y - curr_y)
+    
+        # 2. If there was a piece to capture, hide it temporarily (don't delete yet!)
+        captured_piece_state = None
+        if special_flag and lpi:
+            # We use state='hidden' to simulate it's gone for the check-check
+            captured_piece_state = self.canvas.itemcget(lpi, 'state')
+            self.canvas.itemconfig(lpi, state='hidden')
+
+        # 3. Perform the safety check
         if self.is_king_in_check(ccd=ccd, size=size):
+            # ILLEGAL MOVE: Roll back everything
             self.canvas.move(unique_id, -(dest_x - curr_x), -(dest_y - curr_y))
+            if lpi:
+                self.canvas.itemconfig(lpi, state=captured_piece_state) # Bring it back
+            print("Move illegal: King remains in check")
         else:
+            # LEGAL MOVE: Finalize
+            if "unmoved" in tags:
+                self.canvas.dtag(unique_id, "unmoved")
+        
+            if lpi:
+                self.canvas.delete(lpi) # Actually delete now
+            
             self.move_count += 1
             self.remove_spaces()
+
+            self.checkmate(ccd, size)
 
     def draw_indicator(self, x, y, size, ID, ccd):
         self.Flag = False
