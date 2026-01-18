@@ -6,7 +6,7 @@ from PIL import Image, ImageTk
 class movement_of_indivisual_pieces:
     def __init__(self, canvas):
         self.first_turn_done = False
-
+        self.square_size=125
         self.canvas = canvas
         self.spaces_to_move = []
         self.spaces_to_take = []
@@ -41,37 +41,87 @@ class movement_of_indivisual_pieces:
                 self.canvas.delete(space)
             self.spaces_to_move.clear()
 
+    def spawn_pieces(self, code, grid_x, grid_y):
+         pixel_x = grid_x
+         pixel_y = grid_y
+
+         unique_id = self.canvas.create_image(
+              pixel_x, pixel_y,
+              image=self.images[code],
+              tags=(code, "pieces", "unmoved")
+         )
+         self.canvas.tag_bind(unique_id, 
+                              "<Button-1>",
+                                lambda event,
+                                item_id = unique_id,
+                                square_size = self.square_size,
+                                collective_id = code: 
+                                self.move_pieces(event=event, unique_id=item_id, ccd=collective_id, square_size=square_size)
+        )
+         return unique_id 
+
     def pawnPromotion(self, ID, size, ccd):
         pieces = {
-        "wr" : "WhiteRook.png", "br" : "BlackRook.png",
-        "wh" : "WhiteHorse.png", "bh" : "BlackHorse.png",
-        "wb": "WhiteBishop.png", "bb": "BlackBishop.png",
-        "wq": "WhiteQueen.png", "bq": "BlackQueen.png",
-        "wk": "WhiteKing.png", "bk": "BlackKing.png"
+            "wr" : "WhiteRook.png", "br" : "BlackRook.png",
+            "wh" : "WhiteHorse.png", "bh" : "BlackHorse.png",
+            "wb": "WhiteBishop.png", "bb": "BlackBishop.png",
+            "wq": "WhiteQueen.png", "bq": "BlackQueen.png",
         }
 
         pawnCoords = self.canvas.coords(ID)
-        pawnx = pawnCoords[0]
         pawny = pawnCoords[1]
-        pos_x = 0
-        boundary = size * 8 if ccd[0] == "w" else size * 1
-        pos_y = boundary - size // 2
-        if boundary - size <= pawny <= boundary:
+
+        is_white = ccd[0] == "w"
+        promotion_triggered = (is_white and pawny <= size) or (not is_white and pawny >= size * 7)
+
+        if promotion_triggered:
             print("Pawn can promote")
-            ############################################
+
+            pos_y = (size * 4) 
+
+            pos_x = size * 2 
+
             for code, filename in pieces.items():
-                path = os.path.join(".", filename)
-                img = Image.open(path)
-                img = img.resize((25, 25), Image.Resampling.LANCZOS)
-                self.images[code] = ImageTk.PhotoImage(img) 
-            ############################################
-            for code, filename in self.images.items():
-                unique_id = self.canvas.create_image(
-                  pos_x, pos_y,
-                  image=self.images[code],
-                  tags=(code, "pieces", "unmoved")
-                )
-                pos_x + ((size * 8) // 5)
+
+                if code[0] == ccd[0]:
+                    try:
+                        path = os.path.join(".", filename)
+                        img = Image.open(path)
+                        img = img.resize((75, 75), Image.Resampling.LANCZOS)
+
+                        self.images[code] = ImageTk.PhotoImage(img) 
+                        
+                        unique_id = self.canvas.create_image(
+                            pos_x, pos_y,
+                            image=self.images[code],
+                            tags=(code, "promotion_option"),
+                            anchor="center"
+                        )
+
+                        self.canvas.create_rectangle(
+                            pos_x - size//2, pos_y - size//2,
+                            pos_x + size//2, pos_y + size//2,
+                            outline="gold", width=3, tags="promotion_option"
+                        )
+
+                        self.canvas.tag_bind(unique_id, "<Button-1>", 
+                            lambda e, c=code, p_id=ID: self.finalize_promotion(p_id, c))
+
+                        pos_x += size + 10 
+                        
+                    except Exception as e:
+                        print(f"Error loading {filename}: {e}")
+
+    def finalize_promotion(self, pawn_id, piece_code):
+        """ Replaces the pawn with the selected piece and cleans up menu """
+        coords = self.canvas.coords(pawn_id)
+
+        self.canvas.delete(pawn_id)
+
+        self.canvas.delete("promotion_option")
+
+        print(f"Pawn promoted to {piece_code} at {coords}")
+        self.spawn_pieces(piece_code, coords[0], coords[1])
             ############################################
 
     def enpassant(self, ccd, dx, dy, unique_ID, size):
@@ -376,8 +426,10 @@ class movement_of_indivisual_pieces:
                                 if any(t.startswith(enemy_color) for t in tags):
                                     enemy_piece_tag = next(t for t in tags if t.startswith(enemy_color))
                                     found_type = enemy_piece_tag[1]
-                                    if found_type == piece_type or found_type == 'q':
+
+                                    if found_type == piece_type or (found_type == 'q' and piece_type in ['r', 'b']):
                                         self.type_checking = item
+
                                         self.type_checking_ccd = enemy_piece_tag
                                         return True
                                     else:
@@ -576,6 +628,7 @@ class movement_of_indivisual_pieces:
             self.is_still_in_check(ccd, x, y, square, size)
 
     def move_pieces(self, event, unique_id, ccd, square_size):
+        self.all_intercepting_coords.clear()
         self.check_flag = False
         self.remove_spaces()
         
